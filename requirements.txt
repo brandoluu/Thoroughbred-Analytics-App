@@ -4,3 +4,5 @@ seaborn
 matplotlib
 torch
 scikit-learn
+ipykernel
+seaborn
