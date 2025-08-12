@@ -26,6 +26,8 @@
 - purhcaser: buyer
 - prev.price: previous sale price
 
+For this model, we want to focus on features that only pertain to horses, so things such as the vendor and purchaser and auction related features will be remove.
+
 ## How to run:
 1. python must be installed [here](https://www.python.org/downloads/)
 2. Create a virtual enviorment\
