@@ -18,6 +18,7 @@ class model(nn.Module):
         self.norm = nn.LayerNorm(dimension * 4)
 
         self.batchNorm = nn.BatchNorm1d(numFeatures)
+        self.project = nn.Linear (numFeatures, dimension)
 
         self.network = nn.Sequential(
             nn.Linear(dimension, 256),
@@ -32,8 +33,23 @@ class model(nn.Module):
             nn.Linear(64, 1),
         )
 
-
-
-
     def forward(self, x):
-        return
+        
+        # creating embeddings
+        nameEmbedding = self.embedding(x["name"].long())
+        sireEmbedding = self.embeddingSire(x["sire"].long())
+        damEmbedding = self.embeddingDam(x["dam"].long())   
+        bmSireEmbedding = self.embeddingBmSire(x["bmSire"].long())  
+
+        # Concatenating embeddings
+        embedding = torch.cat((nameEmbedding, sireEmbedding, damEmbedding, bmSireEmbedding), dim=1)
+        embedding = self.dropout(embedding)
+        embedding = self.norm(embedding)
+
+        numeric = self.batchNorm(x["numeric"].float())
+        numeric = self.project(numeric)
+
+        dataset = torch.cat((embedding, numeric), dim=1)
+        y = self.network(dataset)
+            
+        return y
