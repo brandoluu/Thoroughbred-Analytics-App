@@ -19,6 +19,19 @@ class model(nn.Module):
 
         self.batchNorm = nn.BatchNorm1d(numFeatures)
 
+        self.network = nn.Sequential(
+            nn.Linear(dimension, 256),
+            nn.ReLU(),
+            nn.Dropout(0.25),
+            nn.Linear(256, 128),
+            nn.ReLU(),
+            nn.Dropout(0.25),
+            nn.Linear(128, 64),
+            nn.ReLU(),  
+            nn.Dropout(0.25),
+            nn.Linear(64, 1),
+        )
+
 
 
 
