@@ -2,7 +2,7 @@ import torch
 from torch.utils.data import Dataset
 
 num_cols = [
-    "rawErg","erg","age","fee","crop","ems3","form","damForm",
+    "name","rawErg","erg","age","fee","crop","ems3","form","damForm",
     "sex_C","sex_F","sex_G","sex_R"
 ]
 

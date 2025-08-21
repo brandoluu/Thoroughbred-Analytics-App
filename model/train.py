@@ -15,6 +15,7 @@ from dataset import HorseDataset
 from model import model
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from evaluate import evaluate
 
 def trainOneEpoch(model, loader, optimizer, device, grad_clip=None, use_amp=True):
     model.train()
@@ -76,3 +77,23 @@ if __name__ == "__main__":
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5)
     print(" ======= Successfully created model and optimizer ======= ")
+
+    # Training parameters to be added to command line arguments after
+    bestValLoss = float('inf')
+    numEpochs = 10
+
+    # training loop
+    for epoch in range(numEpochs):
+        trainMSE = trainOneEpoch(model, trainLoader, optimizer, device)
+
+        validation = evaluate(model, valLoader, device)
+
+        if scheduler is not None:
+            scheduler.step()
+
+        print(f"Epoch {epoch:03d} | "
+              f"Train MSE: {trainMSE:.5f} | "
+              f"Val MSE: {validation['mse']:.5f} | "
+              f"Val RMSE: {validation['rmse']:.5f} | "
+              f"Val MAE: {validation['mae']:.5f}")
+
