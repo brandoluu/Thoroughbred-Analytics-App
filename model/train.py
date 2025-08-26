@@ -59,7 +59,7 @@ if __name__ == "__main__":
     print(f"Using device: {device}")
 
     # Laoding the dataset
-    df = pd.read_csv('horseDataProcessed.csv')  # Load your dataset
+    df = pd.read_csv('../horseDataProcessed.csv')  # Load your dataset
 
     trainDs = HorseDataset(df)  # Assuming df_train is defined
     print(" ======= Successfully loaded dataset ======= ")
@@ -89,7 +89,7 @@ if __name__ == "__main__":
         validation = evaluate(model, valLoader, device)
 
         if scheduler is not None:
-            scheduler.step()
+            scheduler.step(validation['mse'])
 
         print(f"Epoch {epoch:03d} | "
               f"Train MSE: {trainMSE:.5f} | "

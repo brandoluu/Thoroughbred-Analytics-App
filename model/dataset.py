@@ -2,8 +2,8 @@ import torch
 from torch.utils.data import Dataset
 
 num_cols = [
-    "name","rawErg","erg","age","fee","crop","ems3","form","damForm",
-    "sex_C","sex_F","sex_G","sex_R"
+    "name", "rating", "rawErg", "erg", "age", "sire", "fee", "crop", "dam", 
+    "ems3", "bmSire", "form", "damForm", "sex_C", "sex_F", "sex_G", "sex_R"
 ]
 
 class HorseDataset(Dataset):
@@ -17,11 +17,22 @@ class HorseDataset(Dataset):
         row = self.df.iloc[idx]
 
         batch = {
-            "name":    torch.tensor(row["name_id"],   dtype=torch.long),
-            "sire":    torch.tensor(row["sire_id"],   dtype=torch.long),
-            "dam":     torch.tensor(row["dam_id"],    dtype=torch.long),
-            "bmSire":  torch.tensor(row["bmSire_id"], dtype=torch.long),
-            "numeric": torch.tensor(row[num_cols].values, dtype=torch.float32),
+            "name":    torch.tensor(row["name"],   dtype=torch.long),
             "rating":  torch.tensor(row["rating"], dtype=torch.float32),
+            "rawErg":  torch.tensor(row["rawErg"], dtype=torch.float32),
+            "erg":     torch.tensor(row["erg"], dtype=torch.float32),
+            "age":     torch.tensor(row["age"], dtype=torch.long),
+            "sire":    torch.tensor(row["sire"],   dtype=torch.long),
+            "fee":     torch.tensor(row["fee"], dtype=torch.float32),
+            "crop":    torch.tensor(row["crop"], dtype=torch.float32),
+            "dam":     torch.tensor(row["dam"],    dtype=torch.long),
+            "ems3":    torch.tensor(row["ems3"], dtype=torch.float32),
+            "bmSire":  torch.tensor(row["bmSire"], dtype=torch.long),
+            "form":    torch.tensor(row["form"], dtype=torch.float32),
+            "damForm": torch.tensor(row["damForm"], dtype=torch.float32),
+            "numeric": torch.tensor(row[num_cols].values, dtype=torch.float32), # combines the hot encoded columns together
         }
+
+        
+
         return batch

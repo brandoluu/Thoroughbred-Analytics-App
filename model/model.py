@@ -4,24 +4,24 @@ import torch
 import torch.nn as nn
 
 class model(nn.Module):
-    def __init__(self, dimension=64, numFeatures=12):
+    def __init__(self, dimension=64, numFeatures=17):
         super().__init__()
 
         # Embedding layers:
         self.embedding = nn.Embedding(65023, dimension)  # Example embedding layer
-        self.embeddingSire = nn.Embedding(1030, dimension)
-        self.embeddingDam = nn.Embedding(27100, dimension)
-        self.embeddingBmSire = nn.Embedding(2091, dimension)
+        self.embeddingSire = nn.Embedding(65926, dimension)
+        self.embeddingDam = nn.Embedding(88981, dimension)
+        self.embeddingBmSire = nn.Embedding(90479, dimension)
 
         # Dropout layer and normalization layer:
         self.dropout = nn.Dropout(0.25)
         self.norm = nn.LayerNorm(dimension * 4)
 
-        self.batchNorm = nn.BatchNorm1d(numFeatures)
-        self.project = nn.Linear (numFeatures, dimension)
+        self.batchNorm = nn.BatchNorm1d(17)
+        self.project = nn.Linear(17, dimension)
 
         self.network = nn.Sequential(
-            nn.Linear(dimension, 256),
+            nn.Linear(dimension * 5, 256),
             nn.ReLU(),
             nn.Dropout(0.25),
             nn.Linear(256, 128),
@@ -46,7 +46,7 @@ class model(nn.Module):
         embedding = self.dropout(embedding)
         embedding = self.norm(embedding)
 
-        numeric = self.batchNorm(x["numeric"].float())
+        numeric = self.batchNorm(x["numeric"])
         numeric = self.project(numeric)
 
         dataset = torch.cat((embedding, numeric), dim=1)
