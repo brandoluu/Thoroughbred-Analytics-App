@@ -94,6 +94,7 @@ if __name__ == "__main__":
         print(f"Epoch {epoch:03d} | "
               f"Train MSE: {trainMSE:.5f} | "
               f"Val MSE: {validation['mse']:.5f} | "
+              f"Val MSE: {validation['mse']:.5f} | "
               f"Val RMSE: {validation['rmse']:.5f} | "
               f"Val MAE: {validation['mae']:.5f}")
 
