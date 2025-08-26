@@ -22,35 +22,31 @@ def trainOneEpoch(model, loader, optimizer, device, grad_clip=None, use_amp=True
 
     totalLoss = 0.0
     n = 0
-    scaler = torch.cuda.amp.GradScaler(enabled=(use_amp and device.type == "cuda"))
+    scaler = torch.amp.GradScaler(enabled=(use_amp and device.type == "cuda"))
 
     for batch in loader:
         batch = {k: v.to(device) for k, v in batch.items()}
         y_true = batch["rating"].float()
+        
+    
 
         optimizer.zero_grad(set_to_none=True)
-        if scaler.is_enabled():
-            with torch.cuda.amp.autocast():
-                y_pred = model(batch).squeeze(-1)
-                loss = F.mse_loss(y_pred, y_true)
-            if grad_clip is not None:
-                scaler.unscale_(optimizer)
-                torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
-            scaler.step(optimizer)
-            scaler.update()
-        else:
-            y_pred = model(batch).squeeze(-1)
-            loss = F.mse_loss(y_pred, y_true)
-            loss.backward()
-            if grad_clip is not None:
-                torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
-            optimizer.step()
+        y_pred = model(batch).squeeze(-1)
+        print(y_pred)
+        
+
+        loss = F.mse_loss(y_pred, y_true)
+        print(loss)
+        loss.backward()
+        if grad_clip is not None:
+            torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
+        optimizer.step()
         
         ySize = y_true.size(0)
         totalLoss += loss.item() * ySize
         n += ySize
 
-        return totalLoss / max(n,1)
+    return totalLoss / max(n,1)
     
 
 if __name__ == "__main__":
@@ -69,6 +65,8 @@ if __name__ == "__main__":
     trainDataset = HorseDataset(dfTrain)
     valDataset = HorseDataset(dfVal)    
 
+    print(f"Sizes of train and validation datasets: {len(trainDataset)}, {len(valDataset)}")
+
     trainLoader = DataLoader(trainDataset, batch_size=64, shuffle=True, num_workers=4)
     valLoader = DataLoader(valDataset, batch_size=64, shuffle=False, num_workers=4)
     print(" ======= Successfully created dataloaders ======= ")
@@ -83,7 +81,7 @@ if __name__ == "__main__":
     numEpochs = 10
 
     # training loop
-    for epoch in range(numEpochs):
+    for epoch in range(1, numEpochs+1):
         trainMSE = trainOneEpoch(model, trainLoader, optimizer, device)
 
         validation = evaluate(model, valLoader, device)
