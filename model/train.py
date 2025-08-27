@@ -24,19 +24,20 @@ def trainOneEpoch(model, loader, optimizer, device, grad_clip=None, use_amp=True
     n = 0
     scaler = torch.amp.GradScaler(enabled=(use_amp and device.type == "cuda"))
 
-    for batch in loader:
+    for batchIdx, batch in enumerate(loader):
         batch = {k: v.to(device) for k, v in batch.items()}
         y_true = batch["rating"].float()
         
-    
 
         optimizer.zero_grad(set_to_none=True)
         y_pred = model(batch).squeeze(-1)
-        print(y_pred)
         
-
+        # check for NaNs in y_pred
+        if torch.isnan(y_pred).any():
+            print(f"!!!! NaN detected in batch {batchIdx} !!!!")
+            break
+        
         loss = F.mse_loss(y_pred, y_true)
-        print(loss)
         loss.backward()
         if grad_clip is not None:
             torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
@@ -52,35 +53,33 @@ def trainOneEpoch(model, loader, optimizer, device, grad_clip=None, use_amp=True
 if __name__ == "__main__":
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Using device: {device}")
+    print(f" ======= Using device: {device} ======= ")
 
     # Laoding the dataset
     df = pd.read_csv('../horseDataProcessed.csv')  # Load your dataset
 
-    trainDs = HorseDataset(df)  # Assuming df_train is defined
+    df = HorseDataset(df)  # Assuming df_train is defined
     print(" ======= Successfully loaded dataset ======= ")
 
-    # Creating the train and test
+    # Creating the train and test datasets
     dfTrain, dfVal = train_test_split(df, test_size=0.2, random_state=42)
-    trainDataset = HorseDataset(dfTrain)
-    valDataset = HorseDataset(dfVal)    
 
-    print(f"Sizes of train and validation datasets: {len(trainDataset)}, {len(valDataset)}")
 
-    trainLoader = DataLoader(trainDataset, batch_size=64, shuffle=True, num_workers=4)
-    valLoader = DataLoader(valDataset, batch_size=64, shuffle=False, num_workers=4)
+    trainLoader = DataLoader(dfTrain, batch_size=64, shuffle=True, num_workers=4)
+    valLoader = DataLoader(dfVal, batch_size=64, shuffle=False, num_workers=4)
     print(" ======= Successfully created dataloaders ======= ")
 
     model = model(dimension=64, numFeatures=12).to(device)
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    optimizer = optim.Adam(model.parameters(), lr=0.1e-3)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5)
     print(" ======= Successfully created model and optimizer ======= ")
 
     # Training parameters to be added to command line arguments after
-    bestValLoss = float('inf')
+
     numEpochs = 10
 
     # training loop
+    print(" ======= Starting training ======= ")
     for epoch in range(1, numEpochs+1):
         trainMSE = trainOneEpoch(model, trainLoader, optimizer, device)
 
@@ -91,7 +90,6 @@ if __name__ == "__main__":
 
         print(f"Epoch {epoch:03d} | "
               f"Train MSE: {trainMSE:.5f} | "
-              f"Val MSE: {validation['mse']:.5f} | "
               f"Val MSE: {validation['mse']:.5f} | "
               f"Val RMSE: {validation['rmse']:.5f} | "
               f"Val MAE: {validation['mae']:.5f}")

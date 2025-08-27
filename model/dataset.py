@@ -9,6 +9,7 @@ num_cols = [
 class HorseDataset(Dataset):
     def __init__(self, df):
         self.df = df.reset_index(drop=True)
+        return
 
     def __len__(self):
         return len(self.df)
