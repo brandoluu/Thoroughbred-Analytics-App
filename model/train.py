@@ -16,6 +16,8 @@ from model import model
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from evaluate import evaluate
+import copy
+
 
 def trainOneEpoch(model, loader, optimizer, device, grad_clip=None, use_amp=True):
     model.train()
@@ -31,13 +33,14 @@ def trainOneEpoch(model, loader, optimizer, device, grad_clip=None, use_amp=True
 
         optimizer.zero_grad(set_to_none=True)
         y_pred = model(batch).squeeze(-1)
-        
-        # check for NaNs in y_pred
-        if torch.isnan(y_pred).any():
-            print(f"!!!! NaN detected in batch {batchIdx} !!!!")
-            break
+
         
         loss = F.mse_loss(y_pred, y_true)
+
+        # regulatization
+        l1_norm = sum(p.abs().sum() for p in model.parameters())
+        loss = loss + 1e-5 * l1_norm
+
         loss.backward()
         if grad_clip is not None:
             torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
@@ -48,10 +51,12 @@ def trainOneEpoch(model, loader, optimizer, device, grad_clip=None, use_amp=True
         n += ySize
 
     return totalLoss / max(n,1)
-    
+
 
 if __name__ == "__main__":
-    
+
+    best_model_loss = float('inf')
+    best_model = None
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f" ======= Using device: {device} ======= ")
 
@@ -70,15 +75,16 @@ if __name__ == "__main__":
     print(" ======= Successfully created dataloaders ======= ")
 
     model = model(dimension=64, numFeatures=12).to(device)
-    optimizer = optim.Adam(model.parameters(), lr=0.1e-3)
+    optimizer = optim.Adam(model.parameters(), lr=0.1e-2)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5)
     print(" ======= Successfully created model and optimizer ======= ")
 
     # Training parameters to be added to command line arguments after
 
-    numEpochs = 10
+    numEpochs = 20
 
     # training loop
+    early_stopping_patience = 3
     print(" ======= Starting training ======= ")
     for epoch in range(1, numEpochs+1):
         trainMSE = trainOneEpoch(model, trainLoader, optimizer, device)
@@ -93,4 +99,17 @@ if __name__ == "__main__":
               f"Val MSE: {validation['mse']:.5f} | "
               f"Val RMSE: {validation['rmse']:.5f} | "
               f"Val MAE: {validation['mae']:.5f}")
+        
+        if validation['mse'] < best_model_loss:
+            best_model_loss = validation['mse']
+            best_model = copy.deepcopy(model)
+            print(f"Best model saved with Val MSE: {best_model_loss:.5f}")
+            early_stopping_counter = 0
+        else:
+            early_stopping_counter += 1
+            if early_stopping_counter >= early_stopping_patience:
+                print("Early stopping triggered.")
+                break
+    torch.save(best_model.state_dict(), 'best_model.pth')
+    print(" ======= Training complete ======= ")
 
