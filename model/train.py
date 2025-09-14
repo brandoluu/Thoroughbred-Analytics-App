@@ -70,8 +70,8 @@ if __name__ == "__main__":
     dfTrain, dfVal = train_test_split(df, test_size=0.2, random_state=42)
 
 
-    trainLoader = DataLoader(dfTrain, batch_size=64, shuffle=True, num_workers=4)
-    valLoader = DataLoader(dfVal, batch_size=64, shuffle=False, num_workers=4)
+    trainLoader = DataLoader(dfTrain, batch_size=64, shuffle=True, num_workers=0)
+    valLoader = DataLoader(dfVal, batch_size=64, shuffle=False, num_workers=0)
     print(" ======= Successfully created dataloaders ======= ")
 
     model = model(dimension=64, numFeatures=12).to(device)
@@ -81,10 +81,11 @@ if __name__ == "__main__":
 
     # Training parameters to be added to command line arguments after
 
-    numEpochs = 20
+    numEpochs = 50
 
     # training loop
-    early_stopping_patience = 3
+    early_stopping_patience = 5
+    early_stopping_counter = 0
     print(" ======= Starting training ======= ")
     for epoch in range(1, numEpochs+1):
         trainMSE = trainOneEpoch(model, trainLoader, optimizer, device)
