@@ -17,6 +17,7 @@ def evaluate(model, loader, device):
 
         # Metrics
         loss = F.mse_loss(y_pred, y_true, reduction="sum")
+
         mae  = F.l1_loss(y_pred, y_true, reduction="sum")
 
         total_loss += loss.item()

@@ -34,6 +34,4 @@ class HorseDataset(Dataset):
             "numeric": torch.tensor(row[num_cols].values, dtype=torch.float32), # combines the hot encoded columns together
         }
 
-        
-
         return batch

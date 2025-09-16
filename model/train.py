@@ -1,7 +1,5 @@
-import torch
-import torch.nn as nn
-import torch.optim as optim
 
+import torch.optim as optim
 import os
 import math
 import random
@@ -23,8 +21,8 @@ def trainOneEpoch(model, loader, optimizer, device, grad_clip=None, use_amp=True
     model.train()
 
     totalLoss = 0.0
+    totalLossPrint = 0.0
     n = 0
-    scaler = torch.amp.GradScaler(enabled=(use_amp and device.type == "cuda"))
 
     for batchIdx, batch in enumerate(loader):
         batch = {k: v.to(device) for k, v in batch.items()}
@@ -34,12 +32,11 @@ def trainOneEpoch(model, loader, optimizer, device, grad_clip=None, use_amp=True
         optimizer.zero_grad(set_to_none=True)
         y_pred = model(batch).squeeze(-1)
 
-        
         loss = F.mse_loss(y_pred, y_true)
 
         # regulatization
         l1_norm = sum(p.abs().sum() for p in model.parameters())
-        loss = loss + 1e-5 * l1_norm
+        regularized_loss = loss + 1e-3 * l1_norm
 
         loss.backward()
         if grad_clip is not None:
@@ -47,10 +44,12 @@ def trainOneEpoch(model, loader, optimizer, device, grad_clip=None, use_amp=True
         optimizer.step()
         
         ySize = y_true.size(0)
-        totalLoss += loss.item() * ySize
+        totalLoss += regularized_loss.item() * ySize
+
+        totalLossPrint += loss.item() * ySize
         n += ySize
 
-    return totalLoss / max(n,1)
+    return totalLoss / max(n,1), totalLossPrint / max(n,1)
 
 
 if __name__ == "__main__":
@@ -75,20 +74,20 @@ if __name__ == "__main__":
     print(" ======= Successfully created dataloaders ======= ")
 
     model = model(dimension=64, numFeatures=12).to(device)
-    optimizer = optim.Adam(model.parameters(), lr=0.1e-2)
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5)
+    optimizer = optim.Adam(model.parameters(), lr=0.1e-4)
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=5)
     print(" ======= Successfully created model and optimizer ======= ")
 
     # Training parameters to be added to command line arguments after
 
-    numEpochs = 50
+    numEpochs = 100
 
     # training loop
-    early_stopping_patience = 5
+    early_stopping_patience = 8
     early_stopping_counter = 0
-    print(" ======= Starting training ======= ")
+    print(" ======= Starting training =======\n")
     for epoch in range(1, numEpochs+1):
-        trainMSE = trainOneEpoch(model, trainLoader, optimizer, device)
+        trainMSE, trainMSEPrint = trainOneEpoch(model, trainLoader, optimizer, device)
 
         validation = evaluate(model, valLoader, device)
 
@@ -96,15 +95,15 @@ if __name__ == "__main__":
             scheduler.step(validation['mse'])
 
         print(f"Epoch {epoch:03d} | "
-              f"Train MSE: {trainMSE:.5f} | "
-              f"Val MSE: {validation['mse']:.5f} | "
-              f"Val RMSE: {validation['rmse']:.5f} | "
-              f"Val MAE: {validation['mae']:.5f}")
+              f"Train MSE: {trainMSEPrint:.2f} | "
+              f"Val MSE: {validation['mse']:.2f} | "
+              f"Val RMSE: {validation['rmse']:.2f} | "
+              f"Val MAE: {validation['mae']:.2f}")
         
         if validation['mse'] < best_model_loss:
             best_model_loss = validation['mse']
             best_model = copy.deepcopy(model)
-            print(f"Best model saved with Val MSE: {best_model_loss:.5f}")
+            print(f"Best model saved with Val MSE: {best_model_loss:.5f}\n")
             early_stopping_counter = 0
         else:
             early_stopping_counter += 1
