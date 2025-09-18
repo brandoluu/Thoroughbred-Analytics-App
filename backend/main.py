@@ -36,18 +36,24 @@ def create_parser():
     
     predict_parser = subparsers.add_parser('predict',
                                            help='Make a random prediction',
-                                           descripion='With a trained model, make a random prediction with samples within'
+                                           description='With a trained model, make a random prediction with samples within'
                                            'the dataset to visualize model predictions vs actual ratings.')
-    predict_parser.add_argument('--model', type=str, required=True,
+    predict_parser.add_argument('--model', type=str, default="model/best_model.pth",
                                 help='Path to saved model')
     predict_parser.add_argument('--num-samples', type=int, default=20,
                                 help='Number of random samples to predict and plot')
+    predict_parser.add_argument('--graph', type=bool, default=False,
+                               help='show a plot of the predicted values vs the actual values.')
+    
     
     dataset_parser = subparsers.add_parser('create-dataset',
                                            help='create a new dataset from csv file',
                                            description='create a clean dataset for model training from an ' \
                                            'input .csv file.')
-    dataset_parser.add_argument('')
+    dataset_parser.add_argument("input path",
+                                help="path to the dataset that will be processed")
+    dataset_parser.add_argument("output dataset",
+                                help="name of the output dataset. ")
 
     return parser
 
@@ -55,6 +61,10 @@ def create_parser():
 def main():
     parser = create_parser()
     args = parser.parse_args()
+
+    print(args)
+
+
 
 if __name__ == "__main__":
     main()

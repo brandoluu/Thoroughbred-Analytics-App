@@ -4,6 +4,14 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn.preprocessing import OneHotEncoder
+from model.model import model
+from model.dataset import HorseDataset
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torch.utils.data import DataLoader
+import random
+from torch.utils.data import DataLoader, Subset
 
 """
 Function to preprocess a csv file, returning a cleaned DataFrame.
@@ -68,6 +76,76 @@ def preprocess_csv(path_to_csv):
     print(f"number of unique bmSires: {df['bmSire'].max()}")
 
     return df, nameToId, idToName
+
+"""
+Custom helper collate function to properly batch dictionary data
+"""
+def collate_fn(batch):
+    batched = {}
+    for key in batch[0].keys():
+        batched[key] = torch.stack([item[key] for item in batch])
+    return batched
+
+"""
+Function to make a prediction. 
+
+Input: model (path to model)
+
+output: list of predictions based on number of samples proivded
+"""
+def make_predictions(model_path, dataset_path='data/horseDataProcessed.csv', plot_results=False):
+    predictions = []
+
+    # model loading
+    model = model()
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+    model_states = torch.load(model_path, map_location=device)
+    model.load_state_dict(model_states) 
+    model.to(device)
+    model.eval()
+
+    # data preperation and subset creation
+    dataset = pd.read_csv(dataset_path)
+    model_input = HorseDataset(dataset)
+
+    random_indices = random.sample(range(len(dataset)), 20)
+    subset_dataset = Subset(model_input, random_indices)
+
+    dataloader = DataLoader(subset_dataset, 
+    batch_size=1, 
+    shuffle=False, 
+    collate_fn=collate_fn)
+
+
+    # predictions
+    for batch_idx, batch in enumerate(dataloader):
+        # Get the original index from the random_indices list
+        original_index = random_indices[batch_idx]
+    
+        # Move batch to device
+        for key in batch.keys():
+            batch[key] = batch[key].to(device)
+
+        with torch.no_grad():
+            prediction = model(batch)
+
+        # Use the original index for mapping
+        horse_name = idToName[original_index]
+        print(f"Predicted rating for {horse_name} is {prediction.item()}")
+
+
+        # For grahing:
+        actual_rating = dataset.iloc[original_index]['rating']
+        predictions.append({
+            'horse_name': horse_name,
+            'predicted_rating': prediction.item(),
+            'actual_rating': actual_rating,
+            'error': abs(prediction.item() - actual_rating)
+        })
+
+
+    return predictions
 
 """
 Function to plot connected dot plot of predicted horse ratings vs actual horse ratings.
