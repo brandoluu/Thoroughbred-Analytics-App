@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn.preprocessing import OneHotEncoder
-from model.model import model
+from model.model import Model
 from model.dataset import HorseDataset
 import torch
 import torch.nn as nn
@@ -23,6 +23,7 @@ Output: df: pd.DataFrame - The cleaned DataFrame.
         idToName: dict - Mapping from unique IDs back to horse names.
 """
 def preprocess_csv(path_to_csv):
+    
     df = pd.read_csv(path_to_csv)
 
     # ---- removing unamed horses ----
@@ -74,6 +75,7 @@ def preprocess_csv(path_to_csv):
     print(f"number of unique sires: {df['sire'].max()}")
     print(f"number of unique dams: {df['dam'].max()}")
     print(f"number of unique bmSires: {df['bmSire'].max()}")
+
 
     return df, nameToId, idToName
 
@@ -128,7 +130,7 @@ def make_predictions(model_path, dataset_path='data/horseDataProcessed.csv', plo
             batch[key] = batch[key].to(device)
 
         with torch.no_grad():
-            prediction = model(batch)
+            prediction = Model(batch)
 
         # Use the original index for mapping
         horse_name = idToName[original_index]

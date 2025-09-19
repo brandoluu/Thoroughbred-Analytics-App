@@ -50,9 +50,9 @@ def create_parser():
                                            help='create a new dataset from csv file',
                                            description='create a clean dataset for model training from an ' \
                                            'input .csv file.')
-    dataset_parser.add_argument("input path",
+    dataset_parser.add_argument("input_path",
                                 help="path to the dataset that will be processed")
-    dataset_parser.add_argument("output dataset",
+    dataset_parser.add_argument("output_dataset",
                                 help="name of the output dataset. ")
 
     return parser
@@ -62,7 +62,31 @@ def main():
     parser = create_parser()
     args = parser.parse_args()
 
-    print(args)
+    if args.command == "create-dataset":
+
+        try:
+            df, _, _ = preprocess_csv(args.input_path)
+            df.to_csv(args.output_dataset)
+
+        except FileNotFoundError:
+            print(f"Error: File '{args.input_path}' not found.")
+
+    elif parser.command == "train":
+        pass
+
+    elif parser.command == "predict":
+        model_path = None
+        dataset_path = None
+        plot_results = False
+
+        if args.model is not None:
+            model_path = args.model
+        
+            
+
+
+        
+
 
 
 
