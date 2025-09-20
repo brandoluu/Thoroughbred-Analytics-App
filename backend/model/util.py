@@ -80,6 +80,18 @@ def preprocess_csv(path_to_csv):
     return df, nameToId, idToName
 
 """
+takes a clean datasaet and returns a map horse names to indices. 
+"""
+def encode_names(clean_dataset):
+    df = pd.read_csv(clean_dataset)
+
+    uniqueNames = pd.concat([df['name'], df['sire'], df['dam'], df['bmSire']]).unique()
+    nameToId = {name: idx for idx, name in enumerate(uniqueNames)}
+    
+    return nameToId
+
+
+"""
 Custom helper collate function to properly batch dictionary data
 """
 def collate_fn(batch):
@@ -95,11 +107,12 @@ Input: model (path to model)
 
 output: list of predictions based on number of samples proivded
 """
-def make_predictions(model_path, dataset_path='data/horseDataProcessed.csv', plot_results=False):
+def make_predictions(model_path, dataset_path, plot_results, num_samples):
     predictions = []
 
+
     # model loading
-    model = model()
+    model = Model()
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     model_states = torch.load(model_path, map_location=device)
@@ -108,10 +121,12 @@ def make_predictions(model_path, dataset_path='data/horseDataProcessed.csv', plo
     model.eval()
 
     # data preperation and subset creation
+    idToName = encode_names(dataset_path) 
+
     dataset = pd.read_csv(dataset_path)
     model_input = HorseDataset(dataset)
 
-    random_indices = random.sample(range(len(dataset)), 20)
+    random_indices = random.sample(range(len(dataset)), num_samples)
     subset_dataset = Subset(model_input, random_indices)
 
     dataloader = DataLoader(subset_dataset, 
@@ -130,7 +145,7 @@ def make_predictions(model_path, dataset_path='data/horseDataProcessed.csv', plo
             batch[key] = batch[key].to(device)
 
         with torch.no_grad():
-            prediction = Model(batch)
+            prediction = model(batch)
 
         # Use the original index for mapping
         horse_name = idToName[original_index]
@@ -145,6 +160,9 @@ def make_predictions(model_path, dataset_path='data/horseDataProcessed.csv', plo
             'actual_rating': actual_rating,
             'error': abs(prediction.item() - actual_rating)
         })
+
+    if plot_results:
+        plot_connected_dot_plot(predictions)
 
 
     return predictions

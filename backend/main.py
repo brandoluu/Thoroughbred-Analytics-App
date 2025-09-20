@@ -42,6 +42,8 @@ def create_parser():
                                 help='Path to saved model')
     predict_parser.add_argument('--num-samples', type=int, default=20,
                                 help='Number of random samples to predict and plot')
+    predict_parser. add_argument('--dataset', type=str, default="data/horseDataProcessed.csv",
+                                 help='path to the dataset we want to use to predict')
     predict_parser.add_argument('--graph', type=bool, default=False,
                                help='show a plot of the predicted values vs the actual values.')
     
@@ -71,24 +73,14 @@ def main():
         except FileNotFoundError:
             print(f"Error: File '{args.input_path}' not found.")
 
-    elif parser.command == "train":
+    elif args.command == "train":
         pass
 
-    elif parser.command == "predict":
-        model_path = None
-        dataset_path = None
-        plot_results = False
-
-        if args.model is not None:
-            model_path = args.model
-        
+    elif args.command == "predict":
+        try:
+            make_predictions(args.model, args.dataset, args.g raph, args.num_samples)
+        except FileNotFoundError:
+            print("File not found")
             
-
-
-        
-
-
-
-
 if __name__ == "__main__":
     main()

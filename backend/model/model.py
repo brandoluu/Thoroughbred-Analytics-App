@@ -7,6 +7,8 @@ class Model(nn.Module):
     def __init__(self, dimension=64, numFeatures=17):
         super().__init__()
 
+        dimension=64
+
         # Embedding layers:
         self.embedding = nn.Embedding(65023, dimension)  # Example embedding layer
         self.embeddingSire = nn.Embedding(65926, dimension)
