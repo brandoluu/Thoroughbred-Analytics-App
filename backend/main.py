@@ -23,13 +23,13 @@ def create_parser():
     train_parser = subparsers.add_parser('train',
                                          help='Train a new model',
                                          description='Train a new model with a specific dataset.')
-    train_parser.add_argument('--data', type=str, required=True,
-                             help='Path to training data CSV')
+    train_parser.add_argument("data",
+                              help="the path to the processed csv file to be trained")
     train_parser.add_argument('--epochs', type=int, default=50,
                              help='Number of training epochs')
     train_parser.add_argument('--batch-size', type=int, default=64,
                              help='Training batch size')
-    train_parser.add_argument('--lr', type=float, default=0.001,
+    train_parser.add_argument('--lr', type=float, default=0.1e-4,
                              help='Learning rate')
     train_parser.add_argument('--output', type=str, default='model.pth',
                              help='Output model path')
@@ -74,11 +74,16 @@ def main():
             print(f"Error: File '{args.input_path}' not found.")
 
     elif args.command == "train":
-        pass
+        try:
+            trainModel(args.data, args.epochs, args.output, args.lr, args.batch_size)
+
+        except FileNotFoundError:
+            print("Invalid file sequence. refer to -h for more information. ")
+        
 
     elif args.command == "predict":
         try:
-            make_predictions(args.model, args.dataset, args.g raph, args.num_samples)
+            make_predictions(args.model, args.dataset, args.graph, args.num_samples)
         except FileNotFoundError:
             print("File not found")
             

@@ -53,9 +53,13 @@ Function to train model on a given dataset.
 
 
 Input: dataset: Clean dataset as a .csv file
-Output: None (saves the best model as 'best_model.pth')
+       num_epochs: the number of epochs to train the model
+       learning rate: set the learning rate of model training
+       batch_size: size of the batches being trained for each epoch
+       path_name: the name of the finished model with weights
+Output: None (saves the best model as 'path_name')
 """
-def trainModel(dataset):
+def trainModel(dataset, num_epochs, path_name, learning_rate, batch_size):
 
     best_model_loss = float('inf')
     best_model = None
@@ -72,24 +76,22 @@ def trainModel(dataset):
     dfTrain, dfVal = train_test_split(df, test_size=0.2, random_state=42)
 
 
-    trainLoader = DataLoader(dfTrain, batch_size=64, shuffle=True, num_workers=0)
-    valLoader = DataLoader(dfVal, batch_size=64, shuffle=False, num_workers=0)
+    trainLoader = DataLoader(dfTrain, batch_size=batch_size, shuffle=True, num_workers=0)
+    valLoader = DataLoader(dfVal, batch_size=batch_size, shuffle=False, num_workers=0)
     print(" ======= Successfully created dataloaders ======= ")
 
     modelInstance = Model(dimension=64, numFeatures=12).to(device)
-    optimizer = optim.Adam(modelInstance.parameters(), lr=0.1e-4)
+    optimizer = optim.Adam(modelInstance.parameters(), lr=learning_rate)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=5)
     print(" ======= Successfully created model and optimizer ======= ")
 
     # Training parameters to be added to command line arguments after
 
-    numEpochs = 100
-
     # training loop
     early_stopping_patience = 8
     early_stopping_counter = 0
     print(" ======= Starting training =======\n")
-    for epoch in range(1, numEpochs+1):
+    for epoch in range(1, num_epochs+1):
         trainMSE, trainMSEPrint = trainOneEpoch(modelInstance, trainLoader, optimizer, device)
 
         validation = evaluate(modelInstance, valLoader, device)
@@ -113,6 +115,6 @@ def trainModel(dataset):
             if early_stopping_counter >= early_stopping_patience:
                 print("Early stopping triggered.")
                 break
-    torch.save(best_model.state_dict(), 'best_model.pth')
+    torch.save(best_model.state_dict(), f"{path_name}.pth")
     print(" ======= Training complete ======= ")
 
