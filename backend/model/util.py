@@ -57,8 +57,7 @@ def preprocess_csv(path_to_csv):
     nameToId = {name: idx for idx, name in enumerate(uniqueNames)}
     idToName = {idx: name for idx, name in enumerate(uniqueNames)}
 
-    df['actual_name'] = df['name']
-    df['name'] = df['name'].map(nameToId)
+    df['name_encoded'] = df['name'].map(nameToId)
     df['sire'] = df['sire'].map(nameToId)
     df['dam'] = df['dam'].map(nameToId)
     df['bmSire'] = df['bmSire'].map(nameToId)
@@ -94,7 +93,7 @@ def encode_names(clean_dataset):
     df = pd.read_csv(clean_dataset)
 
     #uniqueNames = pd.concat([df['name'], df['sire'], df['dam'], df['bmSire']]).unique()
-    uniqueNames = df['actual_name'].unique()
+    uniqueNames = df['name'].unique()
     nameToId = {idx: name for idx, name in enumerate(uniqueNames)}
     
     return nameToId
@@ -132,7 +131,7 @@ def make_predictions(model_path, dataset_path, plot_results, num_samples):
     idToName = encode_names(dataset_path) 
 
     dataset = pd.read_csv(dataset_path)
-    dataset = dataset.drop(['actual_name'], axis=1)
+    dataset = dataset.drop(['name'], axis=1)
     model_input = HorseDataset(dataset)
 
     random_indices = random.sample(range(len(dataset)), num_samples)
@@ -144,7 +143,7 @@ def make_predictions(model_path, dataset_path, plot_results, num_samples):
     collate_fn=collate_fn)
 
 
-    print(idToName)
+
     # predictions
     for batch_idx, batch in enumerate(dataloader):
         # Get the original index from the random_indices list

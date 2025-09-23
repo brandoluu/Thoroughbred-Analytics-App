@@ -2,7 +2,7 @@ import torch
 from torch.utils.data import Dataset
 
 num_cols = [
-    "name", "rating", "rawErg", "erg", "age", "sire", "fee", "crop", "dam", 
+    "name_encoded", "rating", "rawErg", "erg", "age", "sire", "fee", "crop", "dam", 
     "ems3", "bmSire", "form", "damForm", "sex_C", "sex_F", "sex_G", "sex_R"
 ]
 
@@ -18,7 +18,7 @@ class HorseDataset(Dataset):
         row = self.df.iloc[idx]
 
         batch = {
-            "name":    torch.tensor(row["name"],   dtype=torch.float32),
+            "name_encoded":    torch.tensor(row["name_encoded"],   dtype=torch.float32),
             "rating":  torch.tensor(row["rating"], dtype=torch.float32),
             "rawErg":  torch.tensor(row["rawErg"], dtype=torch.float32),
             "erg":     torch.tensor(row["erg"], dtype=torch.float32),

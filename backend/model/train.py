@@ -11,6 +11,7 @@ from torch.utils.data import DataLoader
 from sklearn.model_selection import train_test_split
 from model.evaluate import evaluate
 from model.dataset import HorseDataset  
+import time
 
 
 def trainOneEpoch(model, loader, optimizer, device, grad_clip=None, use_amp=True):
@@ -66,11 +67,12 @@ def trainModel(dataset, num_epochs, path_name, learning_rate, batch_size):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f" ======= Using device: {device} ======= ")
 
-    # Laoding the dataset
-    df = pd.read_csv(dataset)  # Load your dataset
-    df = df.drop(['actual_name'], axis=1)
+    # Laoding the dataset and drop the name column
+    df = pd.read_csv(dataset) 
+    
+    df = df.drop(["name"], axis=1)
 
-    df = HorseDataset(df)  # Assuming df_train is defined
+    df = HorseDataset(df) 
     print(" ======= Successfully loaded dataset ======= ")
 
     # Creating the train and test datasets
@@ -89,9 +91,10 @@ def trainModel(dataset, num_epochs, path_name, learning_rate, batch_size):
     # Training parameters to be added to command line arguments after
 
     # training loop
-    early_stopping_patience = 8
+    early_stopping_patience = 10
     early_stopping_counter = 0
     print(" ======= Starting training =======\n")
+    start_time = time.time()
     for epoch in range(1, num_epochs+1):
         trainMSE, trainMSEPrint = trainOneEpoch(modelInstance, trainLoader, optimizer, device)
 
@@ -117,5 +120,8 @@ def trainModel(dataset, num_epochs, path_name, learning_rate, batch_size):
                 print("Early stopping triggered.")
                 break
     torch.save(best_model.state_dict(), f"{path_name}.pth")
-    print(" ======= Training complete ======= ")
+
+    end_time = time.time()
+    total_time = end_time - start_time
+    print(f" ======= Training complete in {total_time/60:.2f} minutes ======= ")
 

@@ -38,7 +38,7 @@ class Model(nn.Module):
     def forward(self, x):
         
         # creating embeddings
-        nameEmbedding = self.embedding(x["name"].long())
+        nameEmbedding = self.embedding(x["name_encoded"].long())
         sireEmbedding = self.embeddingSire(x["sire"].long())
         damEmbedding = self.embeddingDam(x["dam"].long())   
         bmSireEmbedding = self.embeddingBmSire(x["bmSire"].long())  
