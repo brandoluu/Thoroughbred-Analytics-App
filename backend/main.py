@@ -31,14 +31,14 @@ def create_parser():
                              help='Training batch size')
     train_parser.add_argument('--lr', type=float, default=0.1e-4,
                              help='Learning rate')
-    train_parser.add_argument('--output', type=str, default='model.pth',
+    train_parser.add_argument('--output', type=str, default='model/trainedModels/model',
                              help='Output model path')
     
     predict_parser = subparsers.add_parser('predict',
                                            help='Make a random prediction',
                                            description='With a trained model, make a random prediction with samples within'
                                            'the dataset to visualize model predictions vs actual ratings.')
-    predict_parser.add_argument('--model', type=str, default="model/best_model.pth",
+    predict_parser.add_argument('--model', type=str, default="model/trainedModels/best_model.pth",
                                 help='Path to saved model')
     predict_parser.add_argument('--num-samples', type=int, default=20,
                                 help='Number of random samples to predict and plot')
@@ -67,8 +67,8 @@ def main():
     if args.command == "create-dataset":
 
         try:
-            df, _, _ = preprocess_csv(args.input_path)
-            df.to_csv(args.output_dataset)
+            df, _ = preprocess_csv(args.input_path)
+            df.to_csv(args.output_dataset, index=False)
 
         except FileNotFoundError:
             print(f"Error: File '{args.input_path}' not found.")

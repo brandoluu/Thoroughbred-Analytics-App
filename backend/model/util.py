@@ -19,22 +19,23 @@ Function to preprocess a csv file, returning a cleaned DataFrame.
 Input: path_to_csv: str - Path to the CSV file to be processed.
 
 Output: df: pd.DataFrame - The cleaned DataFrame.
-        nameToId: dict - Mapping from horse names to unique IDs.
         idToName: dict - Mapping from unique IDs back to horse names.
 """
 def preprocess_csv(path_to_csv):
-    
-    df = pd.read_csv(path_to_csv)
+    df = pd.read_csv(path_to_csv, low_memory=False)
 
-    # ---- removing unamed horses ----
     df = df[df['name'] != 'Unnamed']
+    print(f"Shape of dataset: {df.shape}")
 
-    # ---- dropping columns we don't want ----
+    # Dropping columns we know we don't need:
     df = df.drop(columns=['ems', 'grade', 'grade4', 'code', 'lot', 'price', 'status', 'vendor', 'purchaser', 'prev. price'], axis=1)
 
-    # ---- convert fee to a numeric value and filling in missing values ----
+    # converting fees to a numeric value
     df['fee'] = pd.to_numeric(df['fee'], errors='coerce')
-    df['fee'] = df['fee'].fillna(df['fee'].median())
+
+    # removing horses with ratings of 0
+    df = df[df['rating'] > 0]
+
 
     # ---- Turning the birth year to the age of the horse ----
     df['yob'] = 2025 - df['yob']
@@ -56,10 +57,13 @@ def preprocess_csv(path_to_csv):
     nameToId = {name: idx for idx, name in enumerate(uniqueNames)}
     idToName = {idx: name for idx, name in enumerate(uniqueNames)}
 
+    df['actual_name'] = df['name']
     df['name'] = df['name'].map(nameToId)
     df['sire'] = df['sire'].map(nameToId)
     df['dam'] = df['dam'].map(nameToId)
     df['bmSire'] = df['bmSire'].map(nameToId)
+
+
 
     # ---- One hot encoding for gender ----
     hotEncoder = OneHotEncoder(sparse_output=False, handle_unknown='ignore')
@@ -77,7 +81,11 @@ def preprocess_csv(path_to_csv):
     print(f"number of unique bmSires: {df['bmSire'].max()}")
 
 
-    return df, nameToId, idToName
+    # ---- Filling in missing values in Fee category ----
+    df['fee'] = df['fee'].fillna(df['fee'].median())
+
+
+    return df, idToName
 
 """
 takes a clean datasaet and returns a map horse names to indices. 
@@ -85,8 +93,9 @@ takes a clean datasaet and returns a map horse names to indices.
 def encode_names(clean_dataset):
     df = pd.read_csv(clean_dataset)
 
-    uniqueNames = pd.concat([df['name'], df['sire'], df['dam'], df['bmSire']]).unique()
-    nameToId = {name: idx for idx, name in enumerate(uniqueNames)}
+    #uniqueNames = pd.concat([df['name'], df['sire'], df['dam'], df['bmSire']]).unique()
+    uniqueNames = df['actual_name'].unique()
+    nameToId = {idx: name for idx, name in enumerate(uniqueNames)}
     
     return nameToId
 
@@ -110,7 +119,6 @@ output: list of predictions based on number of samples proivded
 def make_predictions(model_path, dataset_path, plot_results, num_samples):
     predictions = []
 
-
     # model loading
     model = Model()
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -124,6 +132,7 @@ def make_predictions(model_path, dataset_path, plot_results, num_samples):
     idToName = encode_names(dataset_path) 
 
     dataset = pd.read_csv(dataset_path)
+    dataset = dataset.drop(['actual_name'], axis=1)
     model_input = HorseDataset(dataset)
 
     random_indices = random.sample(range(len(dataset)), num_samples)
@@ -135,6 +144,7 @@ def make_predictions(model_path, dataset_path, plot_results, num_samples):
     collate_fn=collate_fn)
 
 
+    print(idToName)
     # predictions
     for batch_idx, batch in enumerate(dataloader):
         # Get the original index from the random_indices list

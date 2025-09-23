@@ -68,6 +68,7 @@ def trainModel(dataset, num_epochs, path_name, learning_rate, batch_size):
 
     # Laoding the dataset
     df = pd.read_csv(dataset)  # Load your dataset
+    df = df.drop(['actual_name'], axis=1)
 
     df = HorseDataset(df)  # Assuming df_train is defined
     print(" ======= Successfully loaded dataset ======= ")
