@@ -14,7 +14,7 @@ from model.dataset import HorseDataset
 import time
 
 
-def trainOneEpoch(model, loader, optimizer, device, grad_clip=None, use_amp=True):
+def trainOneEpoch(model, loader, optimizer, device, grad_clip=True, use_amp=True):
     model.train()
 
     totalLoss = 0.0
@@ -96,7 +96,7 @@ def trainModel(dataset, num_epochs, path_name, learning_rate, batch_size):
     print(" ======= Starting training =======\n")
     start_time = time.time()
     for epoch in range(1, num_epochs+1):
-        trainMSE, trainMSEPrint = trainOneEpoch(modelInstance, trainLoader, optimizer, device)
+        _, trainMSEPrint = trainOneEpoch(modelInstance, trainLoader, optimizer, device)
 
         validation = evaluate(modelInstance, valLoader, device)
 

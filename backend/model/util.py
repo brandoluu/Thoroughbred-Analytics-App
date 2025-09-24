@@ -47,8 +47,8 @@ def preprocess_csv(path_to_csv):
     encodedFormDam = ordinalEncoder.fit_transform(np.array(df['form2']).reshape(-1,1))
 
     df = df.drop(['form', 'form2'], axis=1)
-    df['form'] = encodedForm
-    df['damForm'] = encodedFormDam
+    #df['form'] = encodedForm
+    #df['damForm'] = encodedFormDam
 
 
     # ---- Encoding the names of the horses with label encoding ----
