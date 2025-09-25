@@ -158,7 +158,7 @@ def make_predictions(model_path, dataset_path, plot_results, num_samples):
 
         # Use the original index for mapping
         horse_name = idToName[original_index]
-        print(f"Predicted rating for {horse_name} is {prediction.item()}")
+        #print(f"Predicted rating for {horse_name} is {prediction.item()}")
 
 
         # For grahing:
@@ -173,7 +173,7 @@ def make_predictions(model_path, dataset_path, plot_results, num_samples):
     if plot_results:
         plot_connected_dot_plot(predictions)
 
-
+    calculateAccuracy(predictions)
     return predictions
 
 """
@@ -242,3 +242,23 @@ def plot_connected_dot_plot(results):
     print(f"Mean Absolute Error: {df_results['error'].mean():.3f}")
     print(f"Max Error: {df_results['error'].max():.3f}")
     print(f"Min Error: {df_results['error'].min():.3f}")
+
+
+
+"""
+Helper function to calculate the number of correct predictions vs actual with 10 points of tolerance
+"""
+def calculateAccuracy(predictions):
+
+    predictions = pd.DataFrame(predictions)
+
+    totalSampleSize = len(predictions)
+    num_valid = 0
+    # compare the ratings with a tolerance of 10 points
+    for i in range(totalSampleSize):
+        if predictions.iloc[i]['actual_rating'] - 10 < predictions.iloc[i]['predicted_rating'] and predictions.iloc[i]['predicted_rating'] < predictions.iloc[i]['actual_rating'] + 10:
+            num_valid += 1
+
+    accuracy = (num_valid / totalSampleSize) * 100
+
+    print(f"Accuracy (with 10 points of tolerance): {accuracy:.2f}%")
