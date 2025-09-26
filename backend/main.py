@@ -1,6 +1,7 @@
 from model.model import *
 from model.util import *
 from model.train import *
+from model.predict import *
 from model import model
 import torch
 import pandas as pd
@@ -83,7 +84,7 @@ def main():
 
     elif args.command == "predict":
         try:
-            make_predictions(args.model, args.dataset, args.graph, args.num_samples)
+            predict_samples(args.model, args.dataset, args.graph, args.num_samples)
         except FileNotFoundError:
             print("File not found")
             
