@@ -4,7 +4,7 @@ from torch.utils.data import Dataset
 #"form", "damForm"
 
 num_cols = [
-    "name_encoded", "rating", "rawErg", "erg", "age", "sire", "fee", "crop", "dam", 
+    "name_encoded", "rawErg", "erg", "age", "sire", "fee", "crop", "dam", 
     "ems3", "bmSire", "sex_C", "sex_F", "sex_G", "sex_R"
 ]
 

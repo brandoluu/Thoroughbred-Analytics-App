@@ -19,8 +19,8 @@ class Model(nn.Module):
         self.dropout = nn.Dropout(0.25)
         self.norm = nn.LayerNorm(dimension * 4)
 
-        self.batchNorm = nn.BatchNorm1d(15)
-        self.project = nn.Linear(15, dimension)
+        self.batchNorm = nn.BatchNorm1d(14)
+        self.project = nn.Linear(14, dimension)
 
         self.network = nn.Sequential(
             nn.Linear(dimension * 5, 256),

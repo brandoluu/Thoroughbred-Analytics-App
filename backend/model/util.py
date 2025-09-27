@@ -92,8 +92,7 @@ takes a clean datasaet and returns a map horse names to indices.
 def encode_names(clean_dataset):
     df = pd.read_csv(clean_dataset)
 
-    #uniqueNames = pd.concat([df['name'], df['sire'], df['dam'], df['bmSire']]).unique()
-    uniqueNames = df['name'].unique()
+    uniqueNames = pd.concat([df['name'], df['sire'], df['dam'], df['bmSire']]).unique()
     nameToId = {idx: name for idx, name in enumerate(uniqueNames)}
     
     return nameToId

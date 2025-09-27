@@ -23,11 +23,13 @@ def trainOneEpoch(model, loader, optimizer, device, grad_clip=True, use_amp=True
 
     for batchIdx, batch in enumerate(loader):
         batch = {k: v.to(device) for k, v in batch.items()}
+
+
         y_true = batch["rating"].float()
-        
+        X = {k: v for k, v in batch.items() if k != "rating"}
 
         optimizer.zero_grad(set_to_none=True)
-        y_pred = model(batch).squeeze(-1)
+        y_pred = model(X).squeeze(-1)
 
         loss = F.mse_loss(y_pred, y_true)
 
@@ -69,7 +71,7 @@ def trainModel(dataset, num_epochs, path_name, learning_rate, batch_size):
 
     # Laoding the dataset and drop the name column
     df = pd.read_csv(dataset) 
-    
+
     df = df.drop(["name"], axis=1)
 
     df = HorseDataset(df) 
@@ -83,7 +85,7 @@ def trainModel(dataset, num_epochs, path_name, learning_rate, batch_size):
     valLoader = DataLoader(dfVal, batch_size=batch_size, shuffle=False, num_workers=0)
     print(" ======= Successfully created dataloaders ======= ")
 
-    modelInstance = Model(dimension=64, numFeatures=12).to(device)
+    modelInstance = Model(dimension=64).to(device)
     optimizer = optim.Adam(modelInstance.parameters(), lr=learning_rate)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=5)
     print(" ======= Successfully created model and optimizer ======= ")
