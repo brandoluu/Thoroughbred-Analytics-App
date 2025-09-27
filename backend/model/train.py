@@ -104,7 +104,7 @@ def trainModel(dataset, num_epochs, path_name, learning_rate, batch_size):
         validation = evaluate(modelInstance, valLoader, device)
 
         if scheduler is not None:
-            scheduler.step(validation['mse'])
+            scheduler.step(validation['mae'])
 
         print(f"Epoch {epoch:03d} | "
               f"Train MSE: {trainMSEPrint:.2f} | "
@@ -112,8 +112,8 @@ def trainModel(dataset, num_epochs, path_name, learning_rate, batch_size):
               f"Val RMSE: {validation['rmse']:.2f} | "
               f"Val MAE: {validation['mae']:.2f}")
         
-        if validation['mse'] < best_model_loss:
-            best_model_loss = validation['mse']
+        if validation['mae'] < best_model_loss:
+            best_model_loss = validation['mae']
             best_model = copy.deepcopy(modelInstance)
             print(f"Best model saved with Val MSE: {best_model_loss:.5f}\n")
             early_stopping_counter = 0
