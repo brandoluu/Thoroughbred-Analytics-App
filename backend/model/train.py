@@ -22,10 +22,11 @@ def trainOneEpoch(model, loader, optimizer, device, grad_clip=True, use_amp=True
     n = 0
 
     for batchIdx, batch in enumerate(loader):
+
         batch = {k: v.to(device) for k, v in batch.items()}
 
-
         y_true = batch["rating"].float()
+
         X = {k: v for k, v in batch.items() if k != "rating"}
 
         optimizer.zero_grad(set_to_none=True)
@@ -118,9 +119,9 @@ def trainModel(dataset, num_epochs, path_name, learning_rate, batch_size):
             early_stopping_counter = 0
         else:
             early_stopping_counter += 1
-            if early_stopping_counter >= early_stopping_patience:
-                print("Early stopping triggered.")
-                break
+            # if early_stopping_counter >= early_stopping_patience:
+            #     print("Early stopping triggered.")
+            #     break
     torch.save(best_model.state_dict(), f"{path_name}.pth")
 
     end_time = time.time()
