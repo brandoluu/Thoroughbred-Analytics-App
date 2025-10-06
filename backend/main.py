@@ -55,13 +55,90 @@ class HorseData(BaseModel):
 class predictionResponse(BaseModel):
     predicted_rating: float
 
+
+def preprocess_input(horse_data: HorseData) -> torch.Tensor:
+    """
+    Preprocess a single horse input to match training preprocessing
+    """
+    # Convert to DataFrame for easier manipulation
+    df = pd.DataFrame([horse_data.model_dump()])
+    
+    name_to_id = encode_names("data/horseDataBase.csv")
+
+    # Convert fee to numeric
+    df['fee'] = pd.to_numeric(df['fee'], errors='coerce')
+    
+    # Convert birth year to age
+    df['age'] = 2025 - df['yob']
+    df = df.drop('yob', axis=1)
+    
+    # TODO: fix form encoding
+    encoded_form = np.array([[0]])
+    encoded_form_dam = np.array([[0]])
+    
+    df = df.drop(['form', 'form2'], axis=1)
+    df['form'] = encoded_form
+    df['damForm'] = encoded_form_dam
+
+
+
+    # Encode names using saved name_to_id mapping: need to check if the embeddings are in the 
+    # trained model embeddings, if not set to embedding for unknown
+    df['name_encoded'] = df['name'].map(name_to_id).fillna(0)
+    df['sire'] = df['sire'].map(name_to_id).fillna(0)
+    df['dam'] = df['dam'].map(name_to_id).fillna(0)
+    df['bmSire'] = df['bmSire'].map(name_to_id).fillna(0)
+    
+    # Drop original name column
+    df = df.drop('name', axis=1)
+    
+    # Ensure all features are numeric and in correct order
+    # Adjust this list to match your exact feature order from training
+    feature_columns = ['age', 'sex', 'fee', 'form', 'sire', 'dam', 'bmSire', 'damForm', 'name_encoded']
+    
+    # Handle sex encoding if needed
+    if 'sex' in df.columns:
+        sex_mapping = {'M': 0, 'F': 1, 'G': 2, 'C': 3}  # Adjust based on your data
+        df['sex'] = df['sex'].map(sex_mapping).fillna(0)
+    
+    # Select features in correct order
+    try:
+        features = df[feature_columns].values[0]
+    except KeyError:
+        # Use all numeric columns if specific order fails
+        features = df.select_dtypes(include=[np.number]).values[0]
+    
+    # Convert to tensor
+    tensor = torch.tensor(features, dtype=torch.float32).unsqueeze(0)
+    return tensor.to(device)
+
+
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the Horse Rating Prediction API!"}
 
 @app.post
 def predict_rating(horse_data: HorseData) -> predictionResponse:
+    try:
+        input_tensor = preprocess_input(horse_data)
 
+        with torch.no_grad():
+            prediction = model(input_tensor)
+
+        predicted_rating = prediction.item()
+
+        return predictionResponse(predicted_rating=predicted_rating)
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/health")
+def health_check():
+    return {
+        "status": "healthy",
+        "device": str(device),
+        "model_loaded": True,
+    }
 
 if __name__ == "__main__":
     import uvicorn
