@@ -7,6 +7,14 @@ from model.train import trainModel
 from model.util import *
 import pandas as pd
 from typing import Optional
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
 
 app = FastAPI()
 
@@ -62,6 +70,8 @@ def preprocess_input(horse_data: HorseData) -> torch.Tensor:
     """
     # Convert to DataFrame for easier manipulation
     df = pd.DataFrame([horse_data.model_dump()])
+
+    logger.info(f"Raw input data: {df}")
     
     name_to_id = encode_names("data/horseDataBase.csv")
 
@@ -72,15 +82,19 @@ def preprocess_input(horse_data: HorseData) -> torch.Tensor:
     df['age'] = 2025 - df['yob']
     df = df.drop('yob', axis=1)
     
-    # TODO: fix form encoding
-    encoded_form = np.array([[0]])
-    encoded_form_dam = np.array([[0]])
+    # TODO: fix form encoding (Dummy Values)
+    encoded_form = 0
+    encoded_form_dam = 0
     
-    df = df.drop(['form', 'form2'], axis=1)
+
+    df = df.rename(columns={'form2': 'damForm'})
+    
     df['form'] = encoded_form
     df['damForm'] = encoded_form_dam
 
-
+    # change the dtpye of the column
+    df['form'] = df['form'].astype(float)
+    df['damForm'] = df['damForm'].astype(float)
 
     # Encode names using saved name_to_id mapping: need to check if the embeddings are in the 
     # trained model embeddings, if not set to embedding for unknown
@@ -94,7 +108,9 @@ def preprocess_input(horse_data: HorseData) -> torch.Tensor:
     
     # Ensure all features are numeric and in correct order
     # Adjust this list to match your exact feature order from training
-    feature_columns = ['age', 'sex', 'fee', 'form', 'sire', 'dam', 'bmSire', 'damForm', 'name_encoded']
+    feature_columns = ['name_encoded', 'form', 'rawErg', 'erg', 'ems', 'grade', 'age', 'sex', 
+                       'sire', 'fee', 'crop', 'dam', 'damForm', 'ems3', 'grade4', 'bmSire', 
+                       'price', 'status', 'code', 'lot', 'vendor', 'purchaser', 'prev_price']
     
     # Handle sex encoding if needed
     if 'sex' in df.columns:
@@ -110,6 +126,7 @@ def preprocess_input(horse_data: HorseData) -> torch.Tensor:
     
     # Convert to tensor
     tensor = torch.tensor(features, dtype=torch.float32).unsqueeze(0)
+    logger.info(tensor)
     return tensor.to(device)
 
 
@@ -117,7 +134,7 @@ def preprocess_input(horse_data: HorseData) -> torch.Tensor:
 def read_root():
     return {"message": "Welcome to the Horse Rating Prediction API!"}
 
-@app.post
+@app.post("/predict")
 def predict_rating(horse_data: HorseData) -> predictionResponse:
     try:
         input_tensor = preprocess_input(horse_data)

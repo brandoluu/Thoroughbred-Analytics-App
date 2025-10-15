@@ -2,28 +2,28 @@ import { useState, useEffect } from 'react';
 
 export default function HorseRatingPredictor() {
   const [formData, setFormData] = useState({
-    name: '',
-    form: '',
-    rawErg: '',
-    erg: '',
-    ems: '',
-    grade: '',
-    yob: '',
-    sex: 'M',
-    sire: '',
-    fee: '',
-    crop: '',
-    dam: '',
-    form2: '',
-    ems3: '',
-    grade4: '',
-    bmSire: '',
-    price: '',
-    status: '',
-    code: '',
-    lot: '',
-    vendor: '',
-    purchaser: '',
+    name: 'America\'s joy',
+    form: 'UR',
+    rawErg: '69',
+    erg: '72',
+    ems: '0',
+    grade: '0',
+    yob: '2018',
+    sex: 'F',
+    sire: 'American pharoah',
+    fee: '100000',
+    crop: '2',
+    dam: 'Leslie\'s Lady',
+    form2: 'LRw',
+    ems3: '61',
+    grade4: 'C1',
+    bmSire: 'Tricky Creek',
+    price: '8200000',
+    status: 'Sold',
+    code: 'KESEP',
+    lot: '498',
+    vendor: 'Clarkland Farm, LLC',
+    purchaser: 'Whisper Hill Farm, LLC',
     prev_price: ''
   });
   
@@ -102,13 +102,13 @@ export default function HorseRatingPredictor() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 p-6">
       <div className="max-w-6xl mx-auto">
         <div className="bg-white/95 backdrop-blur rounded-2xl shadow-2xl p-8">
           
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Horse Rating Predictor
               </h1>
               <p className="text-gray-600 mt-2">AI-powered rating prediction system</p>
@@ -487,7 +487,7 @@ export default function HorseRatingPredictor() {
             disabled={loading || backendStatus?.status !== 'healthy'}
             className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-4 rounded-lg font-semibold text-lg hover:from-purple-700 hover:to-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
           >
-            {loading ? 'Predicting...' : '🎯 Predict Horse Rating'}
+            {loading ? 'Predicting...' : ' Predict Horse Rating'}
           </button>
 
           {error && (
