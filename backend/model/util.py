@@ -87,6 +87,74 @@ def preprocess_csv(path_to_csv):
     return df, idToName
 
 """
+Helper function to create a clean dataframe from raw input data.
+"""
+def clean_df_input(df):
+    df = df[df['name'] != 'Unnamed']
+
+    # Dropping columns we know we don't need:
+    df = df.drop(columns=['ems', 'grade', 'grade4', 'code', 'lot', 'price', 'status', 'vendor', 'purchaser', 'prev_price'], axis=1)
+
+    # converting fees to a numeric value
+    df['fee'] = pd.to_numeric(df['fee'], errors='coerce')
+
+
+    # ---- Turning the birth year to the age of the horse ----
+    df['yob'] = 2025 - df['yob']
+    df = df.rename(columns={'yob': 'age'})
+
+    # ---- Encoding the ordinal features (form) ----
+    ordinalEncoder = OrdinalEncoder()
+    encodedForm = ordinalEncoder.fit_transform(np.array(df['form']).reshape(-1,1))
+    encodedFormDam = ordinalEncoder.fit_transform(np.array(df['form2']).reshape(-1,1))
+
+    df = df.drop(['form', 'form2'], axis=1)
+    df['form'] = encodedForm
+    df['damForm'] = encodedFormDam
+
+
+    # ---- Encoding the names of the horses with label encoding ----
+    labels = df['sex'].unique()
+    uniqueNames = pd.concat([df['name'], df['sire'], df['dam'], df['bmSire']]).unique()
+    nameToId = {name: idx for idx, name in enumerate(uniqueNames)}
+    idToName = {idx: name for idx, name in enumerate(uniqueNames)}
+
+    df['name_encoded'] = df['name'].map(nameToId)
+    df['sire'] = df['sire'].map(nameToId)
+    df['dam'] = df['dam'].map(nameToId)
+    df['bmSire'] = df['bmSire'].map(nameToId)
+
+
+
+    # ---- One hot encoding for gender ----
+    hotEncoder = OneHotEncoder(sparse_output=False, handle_unknown='ignore')
+    horse_genders = np.array([['F'], ['C'], ['R'], ['G']])
+    print(horse_genders.shape)
+    
+    hotEncoder.fit(horse_genders)
+
+    encodedSex = hotEncoder.transform(df[['sex']])
+
+    sexCols = hotEncoder.get_feature_names_out(['sex'])
+    sexDf = pd.DataFrame(encodedSex, columns=sexCols, index=df.index)
+
+    df = pd.concat([df.drop(columns=['sex']), sexDf], axis=1)
+
+    print(f"number of unique names: {df['name'].nunique()}")
+    print(f"number of unique sires: {df['sire'].max()}")
+    print(f"number of unique dams: {df['dam'].max()}")
+    print(f"number of unique bmSires: {df['bmSire'].max()}")
+
+
+    # ---- Filling in missing values in Fee category ----
+    df['fee'] = df['fee'].fillna(df['fee'].median())
+    print(f"\n {df.head(1)}")
+
+    print(f"\nDatatypes:\n {df.dtypes}")
+    return df
+
+
+"""
 takes a clean datasaet and returns a map horse names to indices. 
 """
 def encode_names(clean_dataset):
