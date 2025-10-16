@@ -7,3 +7,5 @@ scikit-learn
 ipykernel
 seaborn
 graphviz
+fastapi
+uvicorn

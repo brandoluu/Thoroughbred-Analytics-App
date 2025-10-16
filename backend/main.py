@@ -1,92 +1,162 @@
-from model.model import *
-from model.util import *
-from model.train import *
-from model.predict import *
-from model import model
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 import torch
+from model.model import Model
+from model.train import trainModel
+from model.util import *
 import pandas as pd
-import argparse
-import sys
+from typing import Optional
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 
-def create_parser():
-    parser = argparse.ArgumentParser(description="Horse Predictor Rating")
+app = FastAPI()
 
-    subparsers = parser.add_subparsers(
-        dest='command',
-        title='commands',
-        description='Available commands',
-        help='Choose a command to run',
-        required=True
-    )
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-    # Training argument
-    train_parser = subparsers.add_parser('train',
-                                         help='Train a new model',
-                                         description='Train a new model with a specific dataset.')
-    train_parser.add_argument("data",
-                              help="the path to the processed csv file to be trained")
-    train_parser.add_argument('--epochs', type=int, default=50,
-                             help='Number of training epochs')
-    train_parser.add_argument('--batch-size', type=int, default=64,
-                             help='Training batch size')
-    train_parser.add_argument('--lr', type=float, default=0.1e-4,
-                             help='Learning rate')
-    train_parser.add_argument('--output', type=str, default='model/trainedModels/model',
-                             help='Output model path')
+# load model
+model = Model()
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+model_states = torch.load("model/trainedModels/base.pth", map_location=device)
+model.load_state_dict(model_states) 
+model.to(device)
+model.eval
+
+# Pydantic model for input validation and tensor conversion
+class HorseData(BaseModel):
+    name: str
+    form: str
+    rawErg: float
+    erg: float
+    ems: float
+    grade: float
+    yob: int
+    sex: str
+    sire: str
+    fee: float
+    crop: int
+    dam: str
+    form2: str
+    ems3: int
+    grade4: str
+    bmSire: str
+    price: float
+    status: str
+    code: str
+    lot: int
+    vendor: str
+    purchaser: str
+    prev_price: float
+
+class predictionResponse(BaseModel):
+    predicted_rating: float
+
+
+def preprocess_input(horse_data: HorseData) -> torch.Tensor:
+    """
+    Preprocess a single horse input to match training preprocessing
+    """
+    # Convert to DataFrame for easier manipulation
+    df = pd.DataFrame([horse_data.model_dump()])
+
+    logger.info(f"Raw input data: {df}")
     
-    predict_parser = subparsers.add_parser('predict',
-                                           help='Make a random prediction',
-                                           description='With a trained model, make a random prediction with samples within'
-                                           'the dataset to visualize model predictions vs actual ratings.')
-    predict_parser.add_argument('--model', type=str, default="model/trainedModels/best_model.pth",
-                                help='Path to saved model')
-    predict_parser.add_argument('--num-samples', type=int, default=20,
-                                help='Number of random samples to predict and plot')
-    predict_parser. add_argument('--dataset', type=str, default="data/horseDataProcessed.csv",
-                                 help='path to the dataset we want to use to predict')
-    predict_parser.add_argument('--graph', type=bool, default=False,
-                               help='show a plot of the predicted values vs the actual values.')
+    name_to_id = encode_names("data/horseDataBase.csv")
+
+    # Convert fee to numeric
+    df['fee'] = pd.to_numeric(df['fee'], errors='coerce')
     
+    # Convert birth year to age
+    df['age'] = 2025 - df['yob']
+    df = df.drop('yob', axis=1)
     
-    dataset_parser = subparsers.add_parser('create-dataset',
-                                           help='create a new dataset from csv file',
-                                           description='create a clean dataset for model training from an ' \
-                                           'input .csv file.')
-    dataset_parser.add_argument("input_path",
-                                help="path to the dataset that will be processed")
-    dataset_parser.add_argument("output_dataset",
-                                help="name of the output dataset. ")
+    # TODO: fix form encoding (Dummy Values)
+    encoded_form = 0
+    encoded_form_dam = 0
+    
 
-    return parser
+    df = df.rename(columns={'form2': 'damForm'})
+    
+    df['form'] = encoded_form
+    df['damForm'] = encoded_form_dam
+
+    # change the dtpye of the column
+    df['form'] = df['form'].astype(float)
+    df['damForm'] = df['damForm'].astype(float)
+
+    # Encode names using saved name_to_id mapping: need to check if the embeddings are in the 
+    # trained model embeddings, if not set to embedding for unknown
+    df['name_encoded'] = df['name'].map(name_to_id).fillna(0)
+    df['sire'] = df['sire'].map(name_to_id).fillna(0)
+    df['dam'] = df['dam'].map(name_to_id).fillna(0)
+    df['bmSire'] = df['bmSire'].map(name_to_id).fillna(0)
+    
+    # Drop original name column
+    df = df.drop('name', axis=1)
+    
+    # Ensure all features are numeric and in correct order
+    # Adjust this list to match your exact feature order from training
+    feature_columns = ['name_encoded', 'form', 'rawErg', 'erg', 'ems', 'grade', 'age', 'sex', 
+                       'sire', 'fee', 'crop', 'dam', 'damForm', 'ems3', 'grade4', 'bmSire', 
+                       'price', 'status', 'code', 'lot', 'vendor', 'purchaser', 'prev_price']
+    
+    # Handle sex encoding if needed
+    if 'sex' in df.columns:
+        sex_mapping = {'M': 0, 'F': 1, 'G': 2, 'C': 3}  # Adjust based on your data
+        df['sex'] = df['sex'].map(sex_mapping).fillna(0)
+    
+    # Select features in correct order
+    try:
+        features = df[feature_columns].values[0]
+    except KeyError:
+        # Use all numeric columns if specific order fails
+        features = df.select_dtypes(include=[np.number]).values[0]
+    
+    # Convert to tensor
+    tensor = torch.tensor(features, dtype=torch.float32).unsqueeze(0)
+    logger.info(tensor)
+    return tensor.to(device)
 
 
-def main():
-    parser = create_parser()
-    args = parser.parse_args()
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to the Horse Rating Prediction API!"}
 
-    if args.command == "create-dataset":
+@app.post("/predict")
+def predict_rating(horse_data: HorseData) -> predictionResponse:
+    try:
+        input_tensor = preprocess_input(horse_data)
 
-        try:
-            df, _ = preprocess_csv(args.input_path)
-            df.to_csv(args.output_dataset, index=False)
+        with torch.no_grad():
+            prediction = model(input_tensor)
 
-        except FileNotFoundError:
-            print(f"Error: File '{args.input_path}' not found.")
+        predicted_rating = prediction.item()
 
-    elif args.command == "train":
-        try:
-            trainModel(args.data, args.epochs, args.output, args.lr, args.batch_size)
+        return predictionResponse(predicted_rating=predicted_rating)
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
-        except FileNotFoundError:
-            print("Invalid file sequence. refer to -h for more information. ")
-        
+@app.get("/health")
+def health_check():
+    return {
+        "status": "healthy",
+        "device": str(device),
+        "model_loaded": True,
+    }
 
-    elif args.command == "predict":
-        try:
-            predict_samples(args.model, args.dataset, args.graph, args.num_samples)
-        except FileNotFoundError:
-            print("File not found")
-            
 if __name__ == "__main__":
-    main()
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
