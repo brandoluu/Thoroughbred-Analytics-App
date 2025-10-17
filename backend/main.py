@@ -90,7 +90,9 @@ def read_root():
 def predict_rating(horse_data: HorseData) -> predictionResponse:
     try:
         input_tensor = preprocess_input(horse_data)
+        print(f"\n{input_tensor}")
 
+        model.eval()
         with torch.no_grad():
             prediction = model(input_tensor)
 

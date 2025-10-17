@@ -24,7 +24,7 @@ export default function HorseRatingPredictor() {
     lot: '498',
     vendor: 'Clarkland Farm, LLC',
     purchaser: 'Whisper Hill Farm, LLC',
-    prev_price: ''
+    prev_price: '0'
   });
   
   const [prediction, setPrediction] = useState(null);
