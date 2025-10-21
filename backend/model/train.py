@@ -23,9 +23,9 @@ def trainOneEpoch(model, loader, optimizer, device, grad_clip=True, use_amp=True
 
     for batchIdx, batch in enumerate(loader):
 
-        batch = {k: v.to(device) for k, v in batch.items()}
+        y_true = batch["rating"].float().to(device)
 
-        y_true = batch["rating"].float()
+        batch = {k: v.to(device) for k, v in batch.items()}
 
         X = {k: v for k, v in batch.items() if k != "rating"}
 
@@ -94,7 +94,7 @@ def trainModel(dataset, num_epochs, path_name, learning_rate, batch_size):
     # Training parameters to be added to command line arguments after
 
     # training loop
-    early_stopping_patience = 10
+    early_stopping_patience = 20
     early_stopping_counter = 0
     print(" ======= Starting training =======\n")
     start_time = time.time()
@@ -109,7 +109,6 @@ def trainModel(dataset, num_epochs, path_name, learning_rate, batch_size):
         print(f"Epoch {epoch:03d} | "
               f"Train MSE: {trainMSEPrint:.2f} | "
               f"Val MSE: {validation['mse']:.2f} | "
-              f"Val RMSE: {validation['rmse']:.2f} | "
               f"Val MAE: {validation['mae']:.2f}")
         
         if validation['mae'] < best_model_loss:
@@ -119,9 +118,9 @@ def trainModel(dataset, num_epochs, path_name, learning_rate, batch_size):
             early_stopping_counter = 0
         else:
             early_stopping_counter += 1
-            # if early_stopping_counter >= early_stopping_patience:
-            #     print("Early stopping triggered.")
-            #     break
+            if early_stopping_counter >= early_stopping_patience:
+                print("Early stopping triggered.")
+                break
     torch.save(best_model.state_dict(), f"{path_name}.pth")
 
     end_time = time.time()

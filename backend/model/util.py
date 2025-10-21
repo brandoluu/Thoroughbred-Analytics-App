@@ -33,7 +33,7 @@ def preprocess_csv(path_to_csv):
     # converting fees to a numeric value
     df['fee'] = pd.to_numeric(df['fee'], errors='coerce')
 
-    # removing horses with ratings of 0
+    # removing horses with ratings of 0 -> means they haven't raced yet?
     df = df[df['rating'] > 0]
 
 

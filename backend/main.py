@@ -29,7 +29,7 @@ app.add_middleware(
 # load model
 model = Model()
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-model_states = torch.load("model/trainedModels/base.pth", map_location=device)
+model_states = torch.load("model/trainedModels/base2.pth", map_location=device)
 model.load_state_dict(model_states) 
 model.to(device)
 model.eval
