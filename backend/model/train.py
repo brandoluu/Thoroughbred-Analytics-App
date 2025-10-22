@@ -34,11 +34,12 @@ def trainOneEpoch(model, loader, optimizer, device, grad_clip=True, use_amp=True
 
         loss = F.mse_loss(y_pred, y_true)
 
-        # regulatization
+        # L1 regulatization
         l1_norm = sum(p.abs().sum() for p in model.parameters())
         regularized_loss = loss + 1e-3 * l1_norm
 
-        loss.backward()
+
+        regularized_loss.backward()
         if grad_clip is not None:
             torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
         optimizer.step()

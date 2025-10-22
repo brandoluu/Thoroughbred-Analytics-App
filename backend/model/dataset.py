@@ -21,7 +21,7 @@ class HorseDataset(Dataset):
 
         batch = {
             "name_encoded":    torch.tensor(row["name_encoded"],   dtype=torch.float32),
-            #"rating":  torch.tensor(row["rating"], dtype=torch.float32),
+            "rating":  torch.tensor(row["rating"], dtype=torch.float32),
             "rawErg":  torch.tensor(row["rawErg"], dtype=torch.float32),
             "erg":     torch.tensor(row["erg"], dtype=torch.float32),
             "age":     torch.tensor(row["age"], dtype=torch.float32),
