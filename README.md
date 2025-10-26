@@ -1,56 +1,24 @@
-# Horse Pedigree Prediction using Machine learning
+# Horse Rating Prediction
 
-## Label Overview (Before Data Preprocessing)
-- Name: Name of the horse
-- Form: Recent racing form/results
-- <mark>Rating: official racing rating</mark> **What we want to optimize**
-- Raw Erg: measured speed/performance metric
-- Erg: Expected racehorse grade 
-- ~~Ems: Expected mane score~~ 
-- ~~Grade: class level of races~~
-- YOB: birth year
-- sex: gender
-- sire: the father of the horse
-- Fee: Cost to breed the horse
-- Crop: number of years the horse had babies
-- dam: the mother of the horse
-- bmSire: the father of the dam (mother)
-- form2: Mom's form
-- ems3: score for the likelihood of the horses mom to produce a good horse
-- ~~grade4:~~
-- price: Sale price
-- status: sale Status
-- code: sale code
-- lot: lot number at auction
-- vendor: seller
-- purhcaser: buyer
-- prev.price: previous sale price
+Custom trained AI models trained on over 60,000 samples powering a streamlined predictor for horses. 
 
-For this model, we want to focus on features that only pertain to horses, so things such as the vendor and purchaser and auction related features will be remove.
+## Dependencies
+First, python2 or python3 must be installed on your computer. You can download it [here](https://www.python.org/downloads/). After cloning this repository onto your computer with `git clone`, open a terminal in the directory where the project is located. 
 
-## How to run:
-1. python must be installed [here](https://www.python.org/downloads/)
-2. Create a virtual enviorment\
-`python -m venv venv`\
- or  
-`python3 -m venv venv`
-3. Then start the enviorment:
+After, enter the command `pip install -r requirements.txt` or `pip3 install -r requiremnts.txt`. <mark>NOTE: if you want to train the model yourself, pytorch with CUDA must be installed seperately [here](https://pytorch.org/get-started/locally/) with the correct cuda version</mark> 
 
-    on Mac/Linux:\
-    `source venv/bin/activate`
+In addition, [Node JS](https://nodejs.org/en/download) must be installed in order to run the predictor client locally. 
 
-    on Windows:\
-    `venv\Scripts\activate`
+## Running the Project
 
-4. In the enviorment, run the following command: `pip install -r requirements.txt`
+There are 2 components of the backend, `dev.py` for training, command-line predicitons, and creating datasets while `main.py` contains the API calls for the frontend. 
 
-5. Then run the following code in `horsePrediction.ipynb`
+**`dev.py`**: in the command line make sure you are in `horsePrediction/backend` and run the following command: `python dev.py {train, predict, create-dataset}` with the following optional flags:
 
-## Machine Learning Model and Training
-
-**Goal**: The goal is to create a model that can optimize the predicted erg of a horse to help determine the value of the horse. Possible models include:
-- Gradient Boosting
-- Random Forest
-- TabNet
-
-The first training attempt will be supervised learning with the rating, with hopes of the model being able to predict the ratings of future horses and pick up connections between the labels. 
+|
+| `data`| path to the dataset used to train the model. (required)|
+|-------|-------------------------------------------------|
+| `--epochs`| number of epochs to train model. (Default: 50)|
+| `--batch-size`| size of batches to be processed during forward pass (Default: 64)|
+| `--lr` | learning rate (Default: 0.0004)|
+| `--output`| name of the final model. Note: input must include the path as well (Default: `model/trainedModels/model`)| 
