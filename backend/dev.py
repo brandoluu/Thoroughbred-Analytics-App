@@ -39,11 +39,11 @@ def create_parser():
                                            help='Make a random prediction',
                                            description='With a trained model, make a random prediction with samples within'
                                            'the dataset to visualize model predictions vs actual ratings.')
-    predict_parser.add_argument('--model', type=str, default="model/trainedModels/best_model.pth",
+    predict_parser.add_argument('--model', type=str, default="model/trainedModels/base.pth",
                                 help='Path to saved model')
     predict_parser.add_argument('--num-samples', type=int, default=20,
                                 help='Number of random samples to predict and plot')
-    predict_parser. add_argument('--dataset', type=str, default="data/horseDataProcessed.csv",
+    predict_parser. add_argument('--dataset', type=str, default="data/baseData.csv",
                                  help='path to the dataset we want to use to predict')
     predict_parser.add_argument('--graph', type=bool, default=False,
                                help='show a plot of the predicted values vs the actual values.')
