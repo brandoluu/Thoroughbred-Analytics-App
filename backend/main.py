@@ -8,6 +8,7 @@ from model.util import *
 import pandas as pd
 from typing import Optional
 import logging
+import traceback
 
 logging.basicConfig(
     level=logging.INFO,
@@ -26,7 +27,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# load model
+# load model and the trained dataset for embeddings
 model = Model()
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model_states = torch.load("model/trainedModels/base2.pth", map_location=device)
@@ -34,32 +35,23 @@ model.load_state_dict(model_states)
 model.to(device)
 model.eval
 
-# Pydantic model for input validation and tensor conversion
+# class for input validation and conversion to a tensor
 class HorseData(BaseModel):
     name: str
     form: str
     rawErg: float
     erg: float
-    ems: float
-    grade: float
     yob: int
     sex: str
     sire: str
     fee: float
     crop: int
     dam: str
-    form2: str
+    damForm: str
     ems3: int
-    grade4: str
     bmSire: str
-    price: float
-    status: str
-    code: str
-    lot: int
-    vendor: str
-    purchaser: str
-    prev_price: float
 
+# model for output response
 class predictionResponse(BaseModel):
     predicted_rating: float
 
@@ -72,13 +64,16 @@ def preprocess_input(horse_data: HorseData) -> torch.Tensor:
     df = pd.DataFrame([horse_data.model_dump()])
 
     df = clean_df_input(df)
+    #print(df.head)
     df = df.drop(columns=['name'], axis=1)
-    print(f"\n {df.dtypes}")
+    #print(f"\n {df.dtypes}")
     
-    inputTensor = HorseDataset(df)[0]
+    inputTensor = HorseDataset(df)[0] # need to take the first batch since we are using the dataset class
     
     # Convert to tensor
     logger.info(f"\n Input tensor: {inputTensor}")
+
+
     inputTensor = {k: v.unsqueeze(0).to(device) for k, v in inputTensor.items()}
     return inputTensor
 
@@ -100,8 +95,15 @@ def predict_rating(horse_data: HorseData) -> predictionResponse:
 
         return predictionResponse(predicted_rating=predicted_rating)
     
+
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print("\n" + "="*50)
+        print("FULL ERROR TRACEBACK:")
+        print("="*50)
+        traceback.print_exc()
+        print("="*50 + "\n")
+        raise  # Re-raise the error so FastAPI shows it too
 
 @app.get("/health")
 def health_check():
