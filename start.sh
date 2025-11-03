@@ -5,6 +5,7 @@ set -e  # exit if any command fails
 
 echo "🚧 Building frontend..."
 cd frontend
+echo $PATH
 npm install
 npm run build
 cd ..
