@@ -5,6 +5,7 @@ import torch
 from model.model import Model
 from model.train import trainModel
 from model.util import *
+from fastapi.staticfiles import StaticFiles
 import pandas as pd
 from typing import Optional
 import logging
@@ -18,6 +19,8 @@ logger = logging.getLogger(__name__)
 
 
 app = FastAPI()
+
+app.mount("/", StaticFiles(directory="backend/static", html=True), name="static")
 
 app.add_middleware(
     CORSMiddleware,
