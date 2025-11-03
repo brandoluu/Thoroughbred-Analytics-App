@@ -6,25 +6,15 @@ export default function HorseRatingPredictor() {
     form: 'UR',
     rawErg: '69',
     erg: '72',
-    ems: '0',
-    grade: '0',
     yob: '2018',
     sex: 'F',
     sire: 'American pharoah',
     fee: '100000',
     crop: '2',
     dam: 'Leslie\'s Lady',
-    form2: 'LRw',
+    damForm: 'LRw',
     ems3: '61',
-    grade4: 'C1',
-    bmSire: 'Tricky Creek',
-    price: '8200000',
-    status: 'Sold',
-    code: 'KESEP',
-    lot: '498',
-    vendor: 'Clarkland Farm, LLC',
-    purchaser: 'Whisper Hill Farm, LLC',
-    prev_price: '0'
+    bmSire: 'Tricky Creek'
   });
   
   const [prediction, setPrediction] = useState(null);
@@ -58,25 +48,15 @@ export default function HorseRatingPredictor() {
         form: formData.form,
         rawErg: parseFloat(formData.rawErg),
         erg: parseFloat(formData.erg),
-        ems: parseFloat(formData.ems),
-        grade: parseFloat(formData.grade),
         yob: parseInt(formData.yob),
         sex: formData.sex,
         sire: formData.sire,
         fee: parseFloat(formData.fee),
         crop: parseInt(formData.crop),
         dam: formData.dam,
-        form2: formData.form2,
+        damForm: formData.damForm,
         ems3: parseInt(formData.ems3),
-        grade4: formData.grade4,
         bmSire: formData.bmSire,
-        price: parseFloat(formData.price),
-        status: formData.status,
-        code: formData.code,
-        lot: parseInt(formData.lot),
-        vendor: formData.vendor,
-        purchaser: formData.purchaser,
-        prev_price: parseFloat(formData.prev_price)
       };
 
       const response = await fetch('http://localhost:8000/predict', {
@@ -198,8 +178,8 @@ export default function HorseRatingPredictor() {
                   </label>
                   <input
                     type="text"
-                    name="form2"
-                    value={formData.form2}
+                    name="damForm"
+                    value={formData.damForm}
                     onChange={handleChange}
                     required
                     placeholder="Mother's form"
@@ -237,20 +217,6 @@ export default function HorseRatingPredictor() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    EMS *
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    name="ems"
-                    value={formData.ems}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  />
-                </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -266,38 +232,12 @@ export default function HorseRatingPredictor() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Grade *
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    name="grade"
-                    value={formData.grade}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  />
-                </div>
+      
+      
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Grade4 *
-                  </label>
-                  <input
-                    type="text"
-                    name="grade4"
-                    value={formData.grade4}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Crop Year *
+                  Crop *
                   </label>
                   <input
                     type="number"
@@ -377,115 +317,11 @@ export default function HorseRatingPredictor() {
             </div>
           </div>
 
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Sale Information</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Price *
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  name="price"
-                  value={formData.price}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Previous Price *
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  name="prev_price"
-                  value={formData.prev_price}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Status *
-                </label>
-                <input
-                  type="text"
-                  name="status"
-                  value={formData.status}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Code *
-                </label>
-                <input
-                  type="text"
-                  name="code"
-                  value={formData.code}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Lot Number *
-                </label>
-                <input
-                  type="number"
-                  name="lot"
-                  value={formData.lot}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Vendor *
-                </label>
-                <input
-                  type="text"
-                  name="vendor"
-                  value={formData.vendor}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
-
-              <div className="col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Purchaser *
-                </label>
-                <input
-                  type="text"
-                  name="purchaser"
-                  value={formData.purchaser}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
-            </div>
-          </div>
 
           <button
             onClick={handleSubmit}
             disabled={loading || backendStatus?.status !== 'healthy'}
-            className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-4 rounded-lg font-semibold text-lg hover:from-purple-700 hover:to-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-lg font-semibold text-lg hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
           >
             {loading ? 'Predicting...' : ' Predict Horse Rating'}
           </button>
