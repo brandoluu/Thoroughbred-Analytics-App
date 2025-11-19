@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
-app.mount("/", StaticFiles(directory="backend/static", html=True), name="static")
+#app.mount("/", StaticFiles(directory="backend/static", html=True), name="static")
 
 app.add_middleware(
     CORSMiddleware,
@@ -116,6 +116,6 @@ def health_check():
         "model_loaded": True,
     }
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+# if __name__ == "__main__":
+#     import uvicorn
+#     uvicorn.run(app, host="0.0.0.0", port=8000)
