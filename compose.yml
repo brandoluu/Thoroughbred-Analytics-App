@@ -1,0 +1,20 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"         # Expose backend to host network
+    networks:
+      - horse_prediction_network
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"         # Expose frontend to host network
+    networks:
+      - horse_prediction_network
+    command: ["npm", "start", "--", "--host", "0.0.0.0"]
+
+networks:
+  horse_prediction_network:
+    driver: bridge

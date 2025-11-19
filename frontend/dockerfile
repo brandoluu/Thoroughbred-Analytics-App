@@ -17,4 +17,4 @@ ENV PORT=3000
 # Expose the port the app runs on
 EXPOSE 3000
 
-CMD ["npm", "start"]
+# CMD ["npm", "run", "build"]
