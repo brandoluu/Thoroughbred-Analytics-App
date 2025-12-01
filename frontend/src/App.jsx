@@ -22,8 +22,10 @@ export default function HorseRatingPredictor() {
   const [error, setError] = useState(null);
   const [backendStatus, setBackendStatus] = useState(null);
 
+  const API_URL = process.env.REACT_APP_API_URL || '';
+
   useEffect(() => {
-    fetch('http://localhost:8000/health')
+    fetch(`${API_URL}/health`)
       .then(res => res.json())
       .then(data => setBackendStatus(data))
       .catch(() => setBackendStatus({ status: 'offline' }));
@@ -35,7 +37,6 @@ export default function HorseRatingPredictor() {
       [e.target.name]: e.target.value
     });
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -59,7 +60,7 @@ export default function HorseRatingPredictor() {
         bmSire: formData.bmSire,
       };
 
-      const response = await fetch('http://localhost:8000/predict', {
+      const response = await fetch(`${API_URL}/predict`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,19 +1,22 @@
+version: "3.9"
+
 services:
   backend:
     build: ./backend
     ports:
-      - "8000:8000"         # Expose backend to host network
+      - "8000:8000"           # Expose backend to LAN
     networks:
       - horse_prediction_network
-    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+    command: ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+    restart: unless-stopped   # optional: restart if it crashes
 
   frontend:
     build: ./frontend
     ports:
-      - "3000:3000"         # Expose frontend to host network
+      - "3000:3000"           # Expose frontend to LAN
     networks:
       - horse_prediction_network
-    command: ["npm", "start", "--", "--host", "0.0.0.0"]
+    restart: unless-stopped
 
 networks:
   horse_prediction_network:

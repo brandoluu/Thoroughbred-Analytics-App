@@ -24,7 +24,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["localhost", "http://localhost:3000"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -33,7 +33,7 @@ app.add_middleware(
 # load model and the trained dataset for embeddings
 model = Model()
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-model_states = torch.load("model/trainedModels/base2.pth", map_location=device)
+model_states = torch.load("model/trainedModels/experiment3L1Norm.pth", map_location=device)
 model.load_state_dict(model_states) 
 model.to(device)
 model.eval
