@@ -1,40 +1,40 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 export default function HorseRatingPredictor() {
   const [formData, setFormData] = useState({
-    name: 'America\'s joy',
-    form: 'UR',
-    rawErg: '69',
-    erg: '72',
-    yob: '2018',
-    sex: 'F',
-    sire: 'American pharoah',
-    fee: '100000',
-    crop: '2',
-    dam: 'Leslie\'s Lady',
-    damForm: 'LRw',
-    ems3: '61',
-    bmSire: 'Tricky Creek'
+    name: "America's joy",
+    form: "UR",
+    rawErg: "69",
+    erg: "72",
+    yob: "2018",
+    sex: "F",
+    sire: "American pharoah",
+    fee: "100000",
+    crop: "2",
+    dam: "Leslie's Lady",
+    damForm: "LRw",
+    ems3: "61",
+    bmSire: "Tricky Creek",
   });
-  
+
   const [prediction, setPrediction] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [backendStatus, setBackendStatus] = useState(null);
 
-  const API_URL = process.env.REACT_APP_API_URL || '';
+  const API_URL = process.env.REACT_APP_API_URL || "";
 
   useEffect(() => {
     fetch(`${API_URL}/health`)
-      .then(res => res.json())
-      .then(data => setBackendStatus(data))
-      .catch(() => setBackendStatus({ status: 'offline' }));
+      .then((res) => res.json())
+      .then((data) => setBackendStatus(data))
+      .catch(() => setBackendStatus({ status: "offline" }));
   }, []);
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
   const handleSubmit = async (e) => {
@@ -61,22 +61,25 @@ export default function HorseRatingPredictor() {
       };
 
       const response = await fetch(`${API_URL}/predict`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail || 'Prediction failed');
+        throw new Error(errorData.detail || "Prediction failed");
       }
 
       const data = await response.json();
       setPrediction(data);
     } catch (err) {
-      setError(err.message || 'Failed to get prediction. Make sure the backend is running.');
+      setError(
+        err.message ||
+          "Failed to get prediction. Make sure the backend is running."
+      );
     } finally {
       setLoading(false);
     }
@@ -86,31 +89,35 @@ export default function HorseRatingPredictor() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 p-6">
       <div className="max-w-6xl mx-auto">
         <div className="bg-white/95 backdrop-blur rounded-2xl shadow-2xl p-8">
-          
           <div className="flex items-center justify-between mb-8">
             <div>
               <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Horse Rating Predictor
               </h1>
-              <p className="text-gray-600 mt-2">AI-powered rating prediction system</p>
+              <p className="text-gray-600 mt-2">
+                AI-powered rating prediction system
+              </p>
             </div>
-            
+
             {backendStatus && (
-              <div className={`px-4 py-2 rounded-full text-sm font-medium ${
-                backendStatus.status === 'healthy' 
-                  ? 'bg-green-100 text-green-700' 
-                  : 'bg-red-100 text-red-700'
-              }`}>
-                {backendStatus.status === 'healthy' ? '● Online' : '● Offline'}
+              <div
+                className={`px-4 py-2 rounded-full text-sm font-medium ${
+                  backendStatus.status === "healthy"
+                    ? "bg-green-100 text-green-700"
+                    : "bg-red-100 text-red-700"
+                }`}
+              >
+                {backendStatus.status === "healthy" ? "● Online" : "● Offline"}
               </div>
             )}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
             <div className="lg:col-span-2">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">Horse Information</h2>
+              <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                Horse Information
+              </h2>
               <div className="grid grid-cols-2 gap-4">
-                
                 <div className="col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Horse Name *
@@ -218,7 +225,6 @@ export default function HorseRatingPredictor() {
                   />
                 </div>
 
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     EMS3 *
@@ -233,12 +239,9 @@ export default function HorseRatingPredictor() {
                   />
                 </div>
 
-      
-      
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Crop *
+                    Crop *
                   </label>
                   <input
                     type="number"
@@ -253,7 +256,9 @@ export default function HorseRatingPredictor() {
             </div>
 
             <div>
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">Pedigree</h2>
+              <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                Pedigree
+              </h2>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -318,13 +323,12 @@ export default function HorseRatingPredictor() {
             </div>
           </div>
 
-
           <button
             onClick={handleSubmit}
-            disabled={loading || backendStatus?.status !== 'healthy'}
+            disabled={loading || backendStatus?.status !== "healthy"}
             className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-lg font-semibold text-lg hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
           >
-            {loading ? 'Predicting...' : ' Predict Horse Rating'}
+            {loading ? "Predicting..." : " Predict Horse Rating"}
           </button>
 
           {error && (
@@ -346,10 +350,14 @@ export default function HorseRatingPredictor() {
                   <h2 className="text-2xl font-bold text-green-900 mb-1">
                     Prediction Complete
                   </h2>
-                  <p className="text-green-700">AI model has analyzed the horse data</p>
+                  <p className="text-green-700">
+                    AI model has analyzed the horse data
+                  </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-green-600 font-medium">Predicted Rating</p>
+                  <p className="text-sm text-green-600 font-medium">
+                    Predicted Rating
+                  </p>
                   <p className="text-5xl font-bold text-green-700">
                     {prediction.predicted_rating.toFixed(2)}
                   </p>

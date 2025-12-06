@@ -1,8 +1,8 @@
-version: "3.9"
-
 services:
   backend:
     build: ./backend
+    image: ghcr.io/brandoluu/horse-backend-windows:latest
+    platform: linux/amd64
     ports:
       - "8000:8000"           # Expose backend to LAN
     networks:
@@ -12,6 +12,8 @@ services:
 
   frontend:
     build: ./frontend
+    image: ghcr.io/brandoluu/horse-frontend-windows:latest
+    platform: linux/amd64
     ports:
       - "3000:3000"           # Expose frontend to LAN
     networks:
