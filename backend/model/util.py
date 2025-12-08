@@ -109,7 +109,7 @@ def clean_df_input(df, dataset="data/baseData.csv"):
     df['yob'] = 2025 - df['yob']
     df = df.rename(columns={'yob': 'age'})
 
-    print(df.head())
+    #print(df.head())
 
     # ---- Encoding the ordinal features (form) ----
     # FIXED: Use transform, not fit_transform
@@ -132,11 +132,11 @@ def clean_df_input(df, dataset="data/baseData.csv"):
     df['bmSire'] = df['bmSire'].map(bmSireToId).fillna(default_bmSire_id).astype(int)
 
     # Verify all values are within bounds
-    print(f"\nValue ranges:")
-    print(f"name_encoded: {df['name_encoded'].min()} to {df['name_encoded'].max()} (max allowed: 49908)")
-    print(f"sire: {df['sire'].min()} to {df['sire'].max()} (max allowed: 50753)")
-    print(f"dam: {df['dam'].min()} to {df['dam'].max()} (max allowed: 71785)")
-    print(f"bmSire: {df['bmSire'].min()} to {df['bmSire'].max()} (max allowed: 73189)")
+    # print(f"\nValue ranges:")
+    # print(f"name_encoded: {df['name_encoded'].min()} to {df['name_encoded'].max()} (max allowed: 49908)")
+    # print(f"sire: {df['sire'].min()} to {df['sire'].max()} (max allowed: 50753)")
+    # print(f"dam: {df['dam'].min()} to {df['dam'].max()} (max allowed: 71785)")
+    # print(f"bmSire: {df['bmSire'].min()} to {df['bmSire'].max()} (max allowed: 73189)")
 
     # ---- One hot encoding for gender ----
     hotEncoder = OneHotEncoder(sparse_output=False, handle_unknown='ignore')

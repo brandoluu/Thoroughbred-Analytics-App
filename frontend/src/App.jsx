@@ -24,12 +24,42 @@ export default function HorseRatingPredictor() {
 
   const API_URL = process.env.REACT_APP_API_URL || "";
 
+  // Helper function to check inputs before sending
+  const safeNumber = (value, type = "float") => {
+    if (value === "" || value === null || value === undefined) return 0;
+    const n = type === "int" ? parseInt(value) : parseFloat(value);
+    return isNaN(n) ? null : n;
+  };
+
+  // Helper function ot check string inputs before sending
+  const safeString = (value) => {
+    if (!value || value.trim() === ""){
+      return null;
+    }
+    return value.trim();
+  };
+
+
   useEffect(() => {
-    fetch(`${API_URL}/health`)
-      .then((res) => res.json())
-      .then((data) => setBackendStatus(data))
-      .catch(() => setBackendStatus({ status: "offline" }));
-  }, []);
+  const checkHealth = async () => {
+    try {
+      const res = await fetch(`${API_URL}/health`)
+
+      if (!res.ok) {
+        const errorText = await res.text()
+        throw new Error(errorText)
+      }
+
+      const data = await res.json()
+      setBackendStatus(data)
+    } catch (err) {
+      console.error("Health check failed:", err.message)
+      setBackendStatus({ status: "offline" })
+    }
+  }
+
+  checkHealth()
+}, [])
 
   const handleChange = (e) => {
     setFormData({
@@ -45,20 +75,21 @@ export default function HorseRatingPredictor() {
 
     try {
       const payload = {
-        name: formData.name,
-        form: formData.form,
-        rawErg: parseFloat(formData.rawErg),
-        erg: parseFloat(formData.erg),
-        yob: parseInt(formData.yob),
+        name: safeString(formData.name),
+        form: safeString(formData.form),
+        rawErg: safeNumber(formData.rawErg),
+        erg: safeNumber(formData.erg),
+        yob: safeNumber(formData.yob),
         sex: formData.sex,
-        sire: formData.sire,
-        fee: parseFloat(formData.fee),
-        crop: parseInt(formData.crop),
-        dam: formData.dam,
-        damForm: formData.damForm,
-        ems3: parseInt(formData.ems3),
-        bmSire: formData.bmSire,
+        sire: safeString(formData.sire),
+        fee: safeNumber(formData.fee),
+        crop: safeNumber(formData.crop),
+        dam: safeString(formData.dam),
+        damForm: safeString(formData.damForm),
+        ems3: safeNumber(formData.ems3),
+        bmSire: safeString(formData.bmSire)
       };
+      console.log(payload, typeof payload);
 
       const response = await fetch(`${API_URL}/predict`, {
         method: "POST",
@@ -120,7 +151,7 @@ export default function HorseRatingPredictor() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Horse Name *
+                    Horse Name 
                   </label>
                   <input
                     type="text"
@@ -135,7 +166,7 @@ export default function HorseRatingPredictor() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Sex *
+                    Sex 
                   </label>
                   <select
                     name="sex"
@@ -152,7 +183,7 @@ export default function HorseRatingPredictor() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Year of Birth *
+                    Year of Birth 
                   </label>
                   <input
                     type="number"
@@ -167,29 +198,27 @@ export default function HorseRatingPredictor() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Form *
+                    Form 
                   </label>
                   <input
                     type="text"
                     name="form"
                     value={formData.form}
                     onChange={handleChange}
-                    required
-                    placeholder="e.g., 123"
+                    placeholder="e.g., LR"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Dam Form *
+                    Dam Form 
                   </label>
                   <input
                     type="text"
                     name="damForm"
                     value={formData.damForm}
                     onChange={handleChange}
-                    required
                     placeholder="Mother's form"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
@@ -197,7 +226,7 @@ export default function HorseRatingPredictor() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Raw ERG *
+                    Raw ERG 
                   </label>
                   <input
                     type="number"
@@ -205,14 +234,13 @@ export default function HorseRatingPredictor() {
                     name="rawErg"
                     value={formData.rawErg}
                     onChange={handleChange}
-                    required
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    ERG *
+                    ERG 
                   </label>
                   <input
                     type="number"
@@ -220,35 +248,32 @@ export default function HorseRatingPredictor() {
                     name="erg"
                     value={formData.erg}
                     onChange={handleChange}
-                    required
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    EMS3 *
+                    EMS3 
                   </label>
                   <input
                     type="number"
                     name="ems3"
                     value={formData.ems3}
                     onChange={handleChange}
-                    required
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Crop *
+                    Crop 
                   </label>
                   <input
                     type="number"
                     name="crop"
                     value={formData.crop}
                     onChange={handleChange}
-                    required
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
                 </div>
@@ -262,14 +287,13 @@ export default function HorseRatingPredictor() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Sire (Father) *
+                    Sire (Father) 
                   </label>
                   <input
                     type="text"
                     name="sire"
                     value={formData.sire}
                     onChange={handleChange}
-                    required
                     placeholder="Father's name"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
@@ -277,14 +301,13 @@ export default function HorseRatingPredictor() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Dam (Mother) *
+                    Dam (Mother) 
                   </label>
                   <input
                     type="text"
                     name="dam"
                     value={formData.dam}
                     onChange={handleChange}
-                    required
                     placeholder="Mother's name"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
@@ -292,14 +315,13 @@ export default function HorseRatingPredictor() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Broodmare Sire *
+                    Broodmare Sire 
                   </label>
                   <input
                     type="text"
                     name="bmSire"
                     value={formData.bmSire}
                     onChange={handleChange}
-                    required
                     placeholder="Maternal grandfather"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
@@ -307,7 +329,7 @@ export default function HorseRatingPredictor() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Stud Fee *
+                    Stud Fee 
                   </label>
                   <input
                     type="number"
@@ -315,7 +337,6 @@ export default function HorseRatingPredictor() {
                     name="fee"
                     value={formData.fee}
                     onChange={handleChange}
-                    required
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
                 </div>

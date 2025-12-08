@@ -20,7 +20,6 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
-#app.mount("/", StaticFiles(directory="backend/static", html=True), name="static")
 
 app.add_middleware(
     CORSMiddleware,
@@ -84,6 +83,7 @@ def preprocess_input(horse_data: HorseData) -> torch.Tensor:
 def read_root():
     return {"message": "Welcome to the Horse Rating Prediction API!"}
 
+
 @app.post("/predict")
 def predict_rating(horse_data: HorseData) -> predictionResponse:
     try:
@@ -108,6 +108,7 @@ def predict_rating(horse_data: HorseData) -> predictionResponse:
         print("="*50 + "\n")
         raise  # Re-raise the error so FastAPI shows it too
 
+
 @app.get("/health")
 def health_check():
     return {
@@ -115,7 +116,3 @@ def health_check():
         "device": str(device),
         "model_loaded": True,
     }
-
-# if __name__ == "__main__":
-#     import uvicorn
-#     uvicorn.run(app, host="0.0.0.0", port=8000)
