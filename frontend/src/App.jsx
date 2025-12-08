@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import {Routes, Route} from "react-router-dom";
+import Predict from "./pages/predict.jsx";
 
 export default function HorseRatingPredictor() {
   const [formData, setFormData] = useState({
