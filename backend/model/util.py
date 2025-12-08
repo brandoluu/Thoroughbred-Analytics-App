@@ -43,7 +43,7 @@ def preprocess_csv(path_to_csv):
     df = df.rename(columns={'yob': 'age'})
 
     # ---- Encoding the ordinal features (form) ----
-    ordinalEncoder = OrdinalEncoder()
+    ordinalEncoder = OrdinalEncoder(handle_unknown="use_encoded_value", unknown_value= -1)
     encodedForm = ordinalEncoder.fit_transform(np.array(df['form']).reshape(-1,1))
     encodedFormDam = ordinalEncoder.fit_transform(np.array(df['form2']).reshape(-1,1))
 
@@ -103,6 +103,7 @@ def clean_df_input(df, dataset="data/baseData.csv"):
     damToId = {name: idx for idx, name in enumerate(original_df['dam'].unique())}
     bmSireToId = {name: idx for idx, name in enumerate(original_df['bmSire'].unique())}
     
+    ordinalEncoder = OrdinalEncoder(handle_unknown="use_encoded_value", unknown_value=0)
     ordinalEncoder = joblib.load("data/ordinalEncoder.pk1")
 
     # ---- Turning the birth year to the age of the horse ----
@@ -112,7 +113,7 @@ def clean_df_input(df, dataset="data/baseData.csv"):
     #print(df.head())
 
     # ---- Encoding the ordinal features (form) ----
-    # FIXED: Use transform, not fit_transform
+    
     encodedForm = ordinalEncoder.transform(np.array(df['form']).reshape(-1,1))
     encodedFormDam = ordinalEncoder.transform(np.array(df['damForm']).reshape(-1,1))
 

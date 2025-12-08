@@ -70,6 +70,7 @@ def preprocess_input(horse_data: HorseData) -> torch.Tensor:
     df = df.drop(columns=['name'], axis=1)
     #print(f"\n {df.dtypes}")
     
+
     inputTensor = HorseDataset(df)[0] # need to take the first batch since we are using the dataset class
     
     # Convert to tensor
