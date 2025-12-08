@@ -34,7 +34,7 @@ export default function HorseRatingPredictor() {
   // Helper function ot check string inputs before sending
   const safeString = (value) => {
     if (!value || value.trim() === ""){
-      return null;
+      return "";
     }
     return value.trim();
   };
