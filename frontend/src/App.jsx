@@ -4,13 +4,13 @@ import { Outlet } from "react-router-dom";
 
 import Navbar from "./components/Navbar";
 import Predict from "./components/Predict.jsx";
-import Recall from "./components/Recall.jsx";
+import Recall from "./components/Predict.jsx";
 
 function Layout() {
   return (
     <>
       <Navbar />
-
+      
       <Outlet />
     </>
   );
@@ -22,6 +22,7 @@ function Home() {
       <a
         className="text-4xl font-bold text-black/90 dark:text-white/90 mb-4"
         to="/"
+        href="/"
       >
         AI Thoroughbred Analytics
       </a>
@@ -45,7 +46,7 @@ const App = () => {
         <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
           <Route path="/Predict" element={<Predict />} />
-          <Route path="/about" element={<Recall />} />
+          <Route path="/Recall" element={<Recall />} />
         </Route>
       </Routes>
     </div>

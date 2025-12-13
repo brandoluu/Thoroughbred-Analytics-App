@@ -37,6 +37,13 @@ model.load_state_dict(model_states)
 model.to(device)
 model.eval
 
+recallModel = Model()
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+model_states = torch.load("model/trainedModels/noForm.pth", map_location=device)
+model.load_state_dict(model_states) 
+model.to(device)
+model.eval
+
 # class for input validation and conversion to a tensor
 class HorseData(BaseModel):
     name: str
@@ -58,7 +65,7 @@ class predictionResponse(BaseModel):
     predicted_rating: float
 
 
-def preprocess_input(horse_data: HorseData) -> torch.Tensor:
+def preprocess_input(horse_data: HorseData, predict) -> torch.Tensor:
     """
     Preprocess a single horse input to match training preprocessing
     """
@@ -66,10 +73,9 @@ def preprocess_input(horse_data: HorseData) -> torch.Tensor:
     df = pd.DataFrame([horse_data.model_dump()])
 
     df = clean_df_input(df)
-    #print(df.head)
     df = df.drop(columns=['name'], axis=1)
-    #print(f"\n {df.dtypes}")
-    
+    if predict:
+        df = df.drop(columns=['form'], axis=1)
 
     inputTensor = HorseDataset(df)[0] # need to take the first batch since we are using the dataset class
     
@@ -85,10 +91,11 @@ def read_root():
     return {"message": "Welcome to the Horse Rating Prediction API!"}
 
 
+# Predict new horse rating with trained model -> used for horses that haven't raced
 @app.post("/predict")
 def predict_rating(horse_data: HorseData) -> predictionResponse:
     try:
-        input_tensor = preprocess_input(horse_data)
+        input_tensor = preprocess_input(horse_data, True)
         print(f"\n{input_tensor}")
 
         model.eval()
@@ -108,6 +115,32 @@ def predict_rating(horse_data: HorseData) -> predictionResponse:
         traceback.print_exc()
         print("="*50 + "\n")
         raise  # Re-raise the error so FastAPI shows it too
+
+# Similar prediction endpoint with recall model
+@app.post("/recall")
+def recall_rating(horse_data: HorseData) -> predictionResponse:
+    try:
+        input_tensor = preprocess_input(horse_data, False)
+        print(f"\n{input_tensor}")
+
+        recallModel.eval()
+        with torch.no_grad():
+            prediction = recallModel(input_tensor)
+
+        predicted_rating = prediction.item()
+
+        return predictionResponse(predicted_rating=predicted_rating)
+    
+
+
+    except Exception as e:
+        print("\n" + "="*50)
+        print("FULL ERROR TRACEBACK:")
+        print("="*50)
+        traceback.print_exc()
+        print("="*50 + "\n")
+        raise  # Re-raise the error so FastAPI shows it too
+
 
 
 @app.get("/health")

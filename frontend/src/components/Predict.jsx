@@ -2,19 +2,18 @@ import { useState, useEffect } from "react";
 
 export default function Predict() {
   const [formData, setFormData] = useState({
-    name: "America's joy",
-    form: "UR",
-    rawErg: "69",
-    erg: "72",
-    yob: "2018",
-    sex: "F",
-    sire: "American pharoah",
-    fee: "100000",
-    crop: "2",
-    dam: "Leslie's Lady",
-    damForm: "LRw",
-    ems3: "61",
-    bmSire: "Tricky Creek",
+    name: "",
+    rawErg: "",
+    erg: "",
+    yob: "",
+    sex: "",
+    sire: "",
+    fee: "",
+    crop: "",
+    dam: "",
+    damForm: "",
+    ems3: "",
+    bmSire: "",
   });
 
   const [prediction, setPrediction] = useState(null);
@@ -74,7 +73,6 @@ export default function Predict() {
     try {
       const payload = {
         name: safeString(formData.name),
-        form: safeString(formData.form),
         rawErg: safeNumber(formData.rawErg),
         erg: safeNumber(formData.erg),
         yob: safeNumber(formData.yob),
@@ -120,12 +118,9 @@ export default function Predict() {
         <div className="bg-zinc-800 backdrop-blur rounded-2xl shadow-2xl p-8">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-grey-800 to-slate-850 bg-clip-text text-transparent">
-                Horse Rating Predictor
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-black-900 to-neutral-800 bg-clip-text text-transparent pb-2">
+                Predict New Horse Rating
               </h1>
-              <p className="text-gray-600 mt-2">
-                AI-powered rating prediction system
-              </p>
             </div>
 
             {backendStatus && (
@@ -190,20 +185,6 @@ export default function Predict() {
                     onChange={handleChange}
                     required
                     placeholder="e.g., 2020"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-white/80 mb-1">
-                    Form
-                  </label>
-                  <input
-                    type="text"
-                    name="form"
-                    value={formData.form}
-                    onChange={handleChange}
-                    placeholder="e.g., LR"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
                 </div>

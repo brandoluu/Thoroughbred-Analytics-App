@@ -70,6 +70,15 @@ const Navbar = () => {
                 Predict New Horse
               </Link>
             </li>
+            <li>
+              <Link
+                className="block w-full whitespace-nowrap px-4 py-2 text-sm font-normal text-neutral-700 hover:bg-zinc-200/60 focus:bg-zinc-200/60 focus:outline-none active:bg-zinc-200/60 dark:text-white dark:hover:bg-neutral-800/25 dark:focus:bg-neutral-800/25 dark:active:bg-neutral-800/25"
+                to="/Recall"
+                onClick={() => setIsOpen(false)}
+              >
+                Recall Past Predictions
+              </Link>
+            </li>
           </ul>
         </div>
       </div>

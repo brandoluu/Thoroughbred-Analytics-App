@@ -29,7 +29,7 @@ def preprocess_csv(path_to_csv):
     print(f"Shape of dataset: {df.shape}")
 
     # Dropping columns we know we don't need:
-    df = df.drop(columns=['ems', 'grade', 'grade4', 'code', 'lot', 'price', 'status', 'vendor', 'purchaser', 'prev. price'], axis=1)
+    df = df.drop(columns=['ems', 'grade', 'grade4', 'code', 'lot', 'price', 'status', 'vendor', 'purchaser', 'prev. price', 'form'], axis=1)
 
     # converting fees to a numeric value
     df['fee'] = pd.to_numeric(df['fee'], errors='coerce')
@@ -44,13 +44,14 @@ def preprocess_csv(path_to_csv):
 
     # ---- Encoding the ordinal features (form) ----
     ordinalEncoder = OrdinalEncoder(handle_unknown="use_encoded_value", unknown_value= -1)
-    encodedForm = ordinalEncoder.fit_transform(np.array(df['form']).reshape(-1,1))
+    # encodedForm = ordinalEncoder.fit_transform(np.array(df['form']).reshape(-1,1))
     encodedFormDam = ordinalEncoder.fit_transform(np.array(df['form2']).reshape(-1,1))
 
     joblib.dump(ordinalEncoder, "data/ordinalEncoder.pk1")
 
-    df = df.drop(['form', 'form2'], axis=1)
-    df['form'] = encodedForm
+    #"form"
+    df = df.drop(['form2'], axis=1)
+    # df['form'] = encodedForm
     df['damForm'] = encodedFormDam
 
 

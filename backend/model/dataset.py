@@ -1,10 +1,10 @@
 import torch
 from torch.utils.data import Dataset
 
-
+# "form"
 num_cols = [
     "name_encoded", "rawErg", "erg", "age", "sire", "fee", "crop", "dam", 
-    "ems3", "bmSire", "form", "damForm", "sex_C", "sex_F", "sex_G", "sex_R"
+    "ems3", "bmSire",  "damForm", "sex_C", "sex_F", "sex_G", "sex_R"
 ]
 
 class HorseDataset(Dataset):
@@ -20,7 +20,7 @@ class HorseDataset(Dataset):
 
         batch = {
             "name_encoded":    torch.tensor(row["name_encoded"],   dtype=torch.float32),
-            #"rating":  torch.tensor(row["rating"], dtype=torch.float32),
+            "rating":  torch.tensor(row["rating"], dtype=torch.float32),
             "rawErg":  torch.tensor(row["rawErg"], dtype=torch.float32),
             "erg":     torch.tensor(row["erg"], dtype=torch.float32),
             "age":     torch.tensor(row["age"], dtype=torch.float32),
@@ -30,7 +30,7 @@ class HorseDataset(Dataset):
             "dam":     torch.tensor(row["dam"],    dtype=torch.float32),
             "ems3":    torch.tensor(row["ems3"], dtype=torch.float32),
             "bmSire":  torch.tensor(row["bmSire"], dtype=torch.float32),
-            "form":    torch.tensor(row["form"], dtype=torch.float32),
+            #  "form":    torch.tensor(row["form"], dtype=torch.float32),
             "damForm": torch.tensor(row["damForm"], dtype=torch.float32),
             "numeric": torch.tensor(row[num_cols].values, dtype=torch.float32), # combines the hot encoded columns together
         }
