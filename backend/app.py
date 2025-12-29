@@ -1,9 +1,9 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import torch
 from model.model import Model
-from model.train import trainModel
+from model.model import recallModel
 from model.util import *
 from fastapi.staticfiles import StaticFiles
 import pandas as pd
@@ -32,17 +32,20 @@ app.add_middleware(
 # load model and the trained dataset for embeddings
 model = Model()
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-model_states = torch.load("model/trainedModels/experiment3L1Norm.pth", map_location=device)
-model.load_state_dict(model_states) 
-model.to(device)
-model.eval
 
-recallModel = Model()
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+# For /predict we want the model that was trained WITHOUT the `form` feature
+# load the no-form checkpoint into `model` (predict)
 model_states = torch.load("model/trainedModels/noForm.pth", map_location=device)
-model.load_state_dict(model_states) 
+model.load_state_dict(model_states)
 model.to(device)
-model.eval
+model.eval()
+
+# instantiate a separate recall model (includes `form`) and load its checkpoint
+recall_model = recallModel()
+model_states_recall = torch.load("model/trainedModels/experiment3L1Norm.pth", map_location=device)
+recall_model.load_state_dict(model_states_recall)
+recall_model.to(device)
+recall_model.eval()
 
 # class for input validation and conversion to a tensor
 class HorseData(BaseModel):
@@ -73,9 +76,17 @@ def preprocess_input(horse_data: HorseData, predict) -> torch.Tensor:
     df = pd.DataFrame([horse_data.model_dump()])
 
     df = clean_df_input(df)
+    # remove name (not used by model)
     df = df.drop(columns=['name'], axis=1)
+
+    # For predict route we DO NOT include 'form' (drop it if present)
     if predict:
-        df = df.drop(columns=['form'], axis=1)
+        if 'form' in df.columns:
+            df = df.drop(columns=['form'], axis=1)
+    else:
+        # For recall route, ensure 'form' exists (use default -1 if missing)
+        if 'form' not in df.columns:
+            df['form'] = -1.0
 
     inputTensor = HorseDataset(df)[0] # need to take the first batch since we are using the dataset class
     
@@ -107,7 +118,6 @@ def predict_rating(horse_data: HorseData) -> predictionResponse:
         return predictionResponse(predicted_rating=predicted_rating)
     
 
-
     except Exception as e:
         print("\n" + "="*50)
         print("FULL ERROR TRACEBACK:")
@@ -116,16 +126,16 @@ def predict_rating(horse_data: HorseData) -> predictionResponse:
         print("="*50 + "\n")
         raise  # Re-raise the error so FastAPI shows it too
 
-# Similar prediction endpoint with recall model
+# Similar prediction endpoint with predict model
 @app.post("/recall")
 def recall_rating(horse_data: HorseData) -> predictionResponse:
     try:
         input_tensor = preprocess_input(horse_data, False)
         print(f"\n{input_tensor}")
 
-        recallModel.eval()
+        recall_model.eval()
         with torch.no_grad():
-            prediction = recallModel(input_tensor)
+            prediction = recall_model(input_tensor)
 
         predicted_rating = prediction.item()
 
@@ -150,3 +160,8 @@ def health_check():
         "device": str(device),
         "model_loaded": True,
     }
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    logger.info(f"Request {request.method} {request.url} headers={dict(request.headers)}")
+    return await call_next(request)

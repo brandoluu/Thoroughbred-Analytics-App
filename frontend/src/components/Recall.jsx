@@ -98,8 +98,28 @@ export default function Recall() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "Prediction failed");
+        let errText = "Prediction failed";
+        try {
+          const errorBody = await response.json();
+          if (errorBody?.detail) {
+            errText =
+              typeof errorBody.detail === "string"
+                ? errorBody.detail
+                : JSON.stringify(errorBody.detail);
+          } else if (errorBody?.message) {
+            errText = errorBody.message;
+          } else {
+            errText = JSON.stringify(errorBody);
+          }
+        } catch (e) {
+          // not JSON, try text
+          try {
+            errText = await response.text();
+          } catch {
+            /* keep fallback */
+          }
+        }
+        throw new Error(errText);
       }
 
       const data = await response.json();
@@ -121,11 +141,8 @@ export default function Recall() {
           <div className="flex items-center justify-between mb-8">
             <div>
               <h1 className="text-4xl font-bold bg-gradient-to-r from-grey-800 to-slate-850 bg-clip-text text-transparent">
-                Horse Rating Predictor
+                Recall Horse Rating
               </h1>
-              <p className="text-gray-600 mt-2">
-                AI-powered rating prediction system
-              </p>
             </div>
 
             {backendStatus && (

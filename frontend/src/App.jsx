@@ -4,13 +4,12 @@ import { Outlet } from "react-router-dom";
 
 import Navbar from "./components/Navbar";
 import Predict from "./components/Predict.jsx";
-import Recall from "./components/Predict.jsx";
+import Recall from "./components/Recall.jsx";
 
 function Layout() {
   return (
     <>
       <Navbar />
-      
       <Outlet />
     </>
   );
