@@ -61,20 +61,23 @@ class Model(nn.Module):
 
 
     def forward(self, x):
-        
-        # creating embeddings
+    
+        # Creating embeddings for all categorical features
         nameEmbedding = self.embedding(x["name_encoded"].long())
         sireEmbedding = self.embeddingSire(x["sire"].long())
         damEmbedding = self.embeddingDam(x["dam"].long())   
-        bmSireEmbedding = self.embeddingBmSire(x["bmSire"].long())  
-
-        # Concatenating embeddings
-        embedding = torch.cat((nameEmbedding, sireEmbedding, damEmbedding, bmSireEmbedding), dim=1)
+        bmSireEmbedding = self.embeddingBmSire(x["bmSire"].long())
+        formEmbedding = self.embeddingForm(x["form"].long())
+        damFormEmbedding = self.embeddingDamForm(x["damForm"].long())
+    
+        # Concatenating all embeddings (now 6 instead of 4)
+        embedding = torch.cat((nameEmbedding, sireEmbedding, damEmbedding, bmSireEmbedding, 
+                              formEmbedding, damFormEmbedding), dim=1)
         embedding = self.dropout(embedding)
         embedding = self.norm(embedding)
-
+    
         numeric = self.batchNorm(x["numeric"])
-
+    
         dataset = torch.cat((embedding, numeric), dim=1)
         y = self.network(dataset)
             
@@ -132,25 +135,22 @@ class recallModel(nn.Module):
             
             nn.Linear(64, 1)
         )
-
+        
     def forward(self, x):
-    
-        # Creating embeddings for all categorical features
+        
+        # creating embeddings
         nameEmbedding = self.embedding(x["name_encoded"].long())
         sireEmbedding = self.embeddingSire(x["sire"].long())
         damEmbedding = self.embeddingDam(x["dam"].long())   
-        bmSireEmbedding = self.embeddingBmSire(x["bmSire"].long())
-        formEmbedding = self.embeddingForm(x["form"].long())
-        damFormEmbedding = self.embeddingDamForm(x["damForm"].long())
-    
-        # Concatenating all embeddings (now 6 instead of 4)
-        embedding = torch.cat((nameEmbedding, sireEmbedding, damEmbedding, bmSireEmbedding, 
-                              formEmbedding, damFormEmbedding), dim=1)
+        bmSireEmbedding = self.embeddingBmSire(x["bmSire"].long())  
+
+        # Concatenating embeddings
+        embedding = torch.cat((nameEmbedding, sireEmbedding, damEmbedding, bmSireEmbedding), dim=1)
         embedding = self.dropout(embedding)
         embedding = self.norm(embedding)
-    
+
         numeric = self.batchNorm(x["numeric"])
-    
+
         dataset = torch.cat((embedding, numeric), dim=1)
         y = self.network(dataset)
             
