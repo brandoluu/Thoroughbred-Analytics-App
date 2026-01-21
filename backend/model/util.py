@@ -29,7 +29,7 @@ def preprocess_csv(path_to_csv):
     print(f"Shape of dataset: {df.shape}")
 
     # Dropping columns we know we don't need:
-    df = df.drop(columns=['ems', 'grade', 'grade4', 'code', 'lot', 'price', 'status', 'vendor', 'purchaser', 'prev. price', 'form'], axis=1)
+    df = df.drop(columns=['ems', 'grade', 'grade4', 'code', 'lot', 'price', 'status', 'vendor', 'purchaser', 'prev. price'], axis=1)
 
     # converting fees to a numeric value
     df['fee'] = pd.to_numeric(df['fee'], errors='coerce')
@@ -37,23 +37,30 @@ def preprocess_csv(path_to_csv):
     # removing horses with ratings of 0 -> means they haven't raced yet?
     df = df[df['rating'] > 0]
 
-
     # ---- Turning the birth year to the age of the horse ----
     df['yob'] = 2025 - df['yob']
     df = df.rename(columns={'yob': 'age'})
 
-    # ---- Encoding the ordinal features (form) ----
-    ordinalEncoder = OrdinalEncoder(handle_unknown="use_encoded_value", unknown_value= -1)
-    # encodedForm = ordinalEncoder.fit_transform(np.array(df['form']).reshape(-1,1))
-    encodedFormDam = ordinalEncoder.fit_transform(np.array(df['form2']).reshape(-1,1))
-
-    joblib.dump(ordinalEncoder, "data/ordinalEncoder.pk1")
-
-    #"form"
-    df = df.drop(['form2'], axis=1)
-    # df['form'] = encodedForm
-    df['damForm'] = encodedFormDam
-
+    # Get all unique form values across both columns
+    uniqueForms = pd.concat([df['form'], df['form2']]).unique()
+    uniqueForms = [f for f in uniqueForms if pd.notna(f)]  # Remove NaN
+    
+    # Create mapping with 0 reserved for unknown/missing
+    formToId = {form: idx + 1 for idx, form in enumerate(uniqueForms)}
+    formToId[np.nan] = 0  # Handle missing values
+    formToId['UNKNOWN'] = 0  # Handle unknown values
+    
+    # Save the mapping for later use
+    joblib.dump(formToId, "data/formEncoder.pkl")
+    
+    # Encode both form columns
+    df['form'] = df['form'].map(formToId).fillna(0).astype(int)
+    df['damForm'] = df['form2'].map(formToId).fillna(0).astype(int)
+    
+    # Drop the original form columns
+    df = df.drop(['form2', 'form1'], axis=1)
+    
+    print(f"Number of unique forms: {len(uniqueForms)}")
 
     # ---- Encoding the names of the horses with label encoding ----
     uniqueNames = pd.concat([df['name'], df['sire'], df['dam'], df['bmSire']]).unique()
@@ -65,16 +72,11 @@ def preprocess_csv(path_to_csv):
     df['dam'] = df['dam'].map(nameToId)
     df['bmSire'] = df['bmSire'].map(nameToId)
 
-
-
     # ---- One hot encoding for gender ----
     hotEncoder = OneHotEncoder(sparse_output=False, handle_unknown='ignore')
-
     encodedSex = hotEncoder.fit_transform(df[['sex']])
-
     sexCols = hotEncoder.get_feature_names_out(['sex'])
     sexDf = pd.DataFrame(encodedSex, columns=sexCols, index=df.index)
-
     df = pd.concat([df.drop(columns=['sex']), sexDf], axis=1)
 
     print(f"number of unique names: {df['name'].nunique()}")
@@ -82,12 +84,10 @@ def preprocess_csv(path_to_csv):
     print(f"number of unique dams: {df['dam'].max()}")
     print(f"number of unique bmSires: {df['bmSire'].max()}")
 
-
     # ---- Filling in missing values in Fee category ----
     df['fee'] = df['fee'].fillna(df['fee'].median())
 
-
-    return df, idToName
+    return df, idToName, formToId  # Return formToId for inference
 
 """
 Helper function to create a clean dataframe from raw input data in our 
