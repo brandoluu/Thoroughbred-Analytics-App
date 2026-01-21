@@ -38,7 +38,7 @@ def preprocess_csv(path_to_csv):
     df = df[df['rating'] > 0]
 
     # ---- Turning the birth year to the age of the horse ----
-    df['yob'] = 2025 - df['yob']
+    df['yob'] = 2026 - df['yob']
     df = df.rename(columns={'yob': 'age'})
 
     # Get all unique form values across both columns
@@ -108,7 +108,7 @@ def clean_df_input(df, dataset="data/baseData.csv"):
     ordinalEncoder = joblib.load("data/ordinalEncoder.pk1")
 
     # ---- Turning the birth year to the age of the horse ----
-    df['yob'] = 2025 - df['yob']
+    df['yob'] = 2026 - df['yob']
     df = df.rename(columns={'yob': 'age'})
 
     #print(df.head())
