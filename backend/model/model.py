@@ -3,6 +3,7 @@ import sys
 import torch
 import torch.nn as nn
 
+
 class Model(nn.Module):
     def __init__(self, dimension=64, num_forms=1000):  # Adjust num_forms based on your data
         super().__init__()
@@ -15,19 +16,15 @@ class Model(nn.Module):
         self.embeddingDam = nn.Embedding(71786, dimension)
         self.embeddingBmSire = nn.Embedding(73190, dimension)
 
-        # NEW: Form embeddings (add padding_idx=0 for unknown forms)
-        self.embeddingForm = nn.Embedding(num_forms + 1, dimension, padding_idx=0)
-        self.embeddingDamForm = nn.Embedding(num_forms + 1, dimension, padding_idx=0)
-
         # Dropout and normalization
         self.dropout = nn.Dropout(0.25)
-        self.norm = nn.LayerNorm(dimension * 6)  # Changed from 4 to 6
+        self.norm = nn.LayerNorm(dimension * 4)
 
-        # Numeric features (now 13 instead of 15, removed form and damForm)
-        self.batchNorm = nn.BatchNorm1d(13)
+
+        self.batchNorm = nn.BatchNorm1d(16)
 
         self.network = nn.Sequential(
-            nn.Linear(dimension * 6 + 13, 1024),  # Changed to 6 embeddings
+            nn.Linear(dimension * 4 + 16, 1024),
             nn.BatchNorm1d(1024),
             nn.ReLU(),
             nn.Dropout(0.1),
@@ -67,12 +64,10 @@ class Model(nn.Module):
         sireEmbedding = self.embeddingSire(x["sire"].long())
         damEmbedding = self.embeddingDam(x["dam"].long())   
         bmSireEmbedding = self.embeddingBmSire(x["bmSire"].long())
-        formEmbedding = self.embeddingForm(x["form"].long())
-        damFormEmbedding = self.embeddingDamForm(x["damForm"].long())
+
     
         # Concatenating all embeddings (now 6 instead of 4)
-        embedding = torch.cat((nameEmbedding, sireEmbedding, damEmbedding, bmSireEmbedding, 
-                              formEmbedding, damFormEmbedding), dim=1)
+        embedding = torch.cat((nameEmbedding, sireEmbedding, damEmbedding, bmSireEmbedding), dim=1)
         embedding = self.dropout(embedding)
         embedding = self.norm(embedding)
     

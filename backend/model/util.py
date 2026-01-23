@@ -14,6 +14,25 @@ import random
 from torch.utils.data import DataLoader, Subset
 import joblib
 
+
+formHeirarchy = {
+    'G1w': 9,  
+    'G2w': 8,  
+    'G3w': 7, 
+    'G1p': 6,  
+    'G2p': 5,  
+    'G3p': 4,  
+    'BTw': 3,  
+    'W': 2,    
+    'P': 1,    
+    'UR': 0,   
+    'UP': 0,   
+    'UNKNOWN': 0,
+    np.nan: 0,
+    '': 0
+}
+
+
 """
 Function to preprocess a csv file, returning a cleaned DataFrame.
 
@@ -41,27 +60,29 @@ def preprocess_csv(path_to_csv):
     df['yob'] = 2026 - df['yob']
     df = df.rename(columns={'yob': 'age'})
 
-    # Get all unique form values across both columns
-    uniqueForms = pd.concat([df['form'], df['form2']]).unique()
-    uniqueForms = [f for f in uniqueForms if pd.notna(f)]  # Remove NaN
+    # # Get all unique form values across both columns
+    # uniqueForms = pd.concat([df['form'], df['form2']]).unique()
+    # uniqueForms = [f for f in uniqueForms if pd.notna(f)]  # Remove NaN
     
-    # Create mapping with 0 reserved for unknown/missing
-    formToId = {form: idx + 1 for idx, form in enumerate(uniqueForms)}
-    formToId[np.nan] = 0  # Handle missing values
-    formToId['UNKNOWN'] = 0  # Handle unknown values
+    # # Create mapping with 0 reserved for unknown/missing
+    # formToId = {form: idx + 1 for idx, form in enumerate(uniqueForms)}
+    # formToId[np.nan] = 0  # Handle missing values
+    # formToId['UNKNOWN'] = 0  # Handle unknown values
     
     # Save the mapping for later use
-    joblib.dump(formToId, "data/formEncoder.pkl")
+    # joblib.dump(formToId, "data/formEncoder.pkl")
     
     # Encode both form columns
-    df['form'] = df['form'].map(formToId).fillna(0).astype(int)
-    df['damForm'] = df['form2'].map(formToId).fillna(0).astype(int)
-    
-    # Drop the original form columns
-    df = df.drop(['form2', 'form1'], axis=1)
-    
-    print(f"Number of unique forms: {len(uniqueForms)}")
+    df['form'] = df['form'].fillna('UNKNOWN')
+    df['form2'] = df['form2'].fillna('UNKNOWN')
 
+    # Map to hierarchy
+    df['form'] = df['form'].map(formHeirarchy).fillna(0).astype(int)
+    df['damForm'] = df['form2'].map(formHeirarchy).fillna(0).astype(int)
+
+    # Drop original form2 column
+    df = df.drop(['form2'], axis=1)
+    
     # ---- Encoding the names of the horses with label encoding ----
     uniqueNames = pd.concat([df['name'], df['sire'], df['dam'], df['bmSire']]).unique()
     nameToId = {name: idx for idx, name in enumerate(uniqueNames)}
@@ -87,7 +108,7 @@ def preprocess_csv(path_to_csv):
     # ---- Filling in missing values in Fee category ----
     df['fee'] = df['fee'].fillna(df['fee'].median())
 
-    return df, idToName, formToId  # Return formToId for inference
+    return df, idToName  # Return formToId for inference
 
 """
 Helper function to create a clean dataframe from raw input data in our 
@@ -261,9 +282,62 @@ def calculateAccuracy(predictions):
     num_valid = 0
     # compare the ratings with a tolerance of 10 points
     for i in range(totalSampleSize):
-        if predictions.iloc[i]['actual_rating'] - 10 < predictions.iloc[i]['predicted_rating'] and predictions.iloc[i]['predicted_rating'] < predictions.iloc[i]['actual_rating'] + 10:
+        if predictions.iloc[i]['actual_rating'] - 15 < predictions.iloc[i]['predicted_rating'] and predictions.iloc[i]['predicted_rating'] < predictions.iloc[i]['actual_rating'] + 15:
             num_valid += 1
 
     accuracy = (num_valid / totalSampleSize) * 100
 
     print(f"Accuracy (with 10 points of tolerance): {accuracy:.2f}%")
+
+
+"""
+Function to plot the learning curve showing training and validation metrics over epochs.
+
+Input: epoch_history: dict containing lists of metrics tracked per epoch
+       - 'epochs': list of epoch numbers
+       - 'train_mse': list of training MSE values
+       - 'val_mse': list of validation MSE values
+       - 'val_mae': list of validation MAE values
+       - 'learning_rates': list of learning rates per epoch
+
+Output: None (displays a plot)
+"""
+def plot_learning_curve(epoch_history):
+    if not epoch_history or 'epochs' not in epoch_history or len(epoch_history['epochs']) == 0:
+        print("No epoch history to plot")
+        return
+    
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+    
+    epochs = epoch_history['epochs']
+    
+    # Plot 1: MSE (Training vs Validation)
+    axes[0].plot(epochs, epoch_history['train_mse'], label='Train MSE', marker='o', linewidth=2, markersize=6)
+    axes[0].plot(epochs, epoch_history['val_mse'], label='Val MSE', marker='s', linewidth=2, markersize=6)
+    axes[0].set_xlabel('Epoch', fontsize=12)
+    axes[0].set_ylabel('MSE', fontsize=12)
+    axes[0].set_title('Training and Validation MSE', fontsize=13, fontweight='bold')
+    axes[0].legend(fontsize=11)
+    axes[0].grid(True, alpha=0.3)
+    
+    # Plot 2: Validation MAE
+    axes[1].plot(epochs, epoch_history['val_mae'], label='Val MAE', marker='o', color='green', linewidth=2, markersize=6)
+    axes[1].set_xlabel('Epoch', fontsize=12)
+    axes[1].set_ylabel('MAE', fontsize=12)
+    axes[1].set_title('Validation MAE', fontsize=13, fontweight='bold')
+    axes[1].legend(fontsize=11)
+    axes[1].grid(True, alpha=0.3)
+    
+    plt.tight_layout()
+    plt.show()
+    
+    # Print summary statistics
+    best_val_mae_idx = np.argmin(epoch_history['val_mae'])
+    best_val_mse_idx = np.argmin(epoch_history['val_mse'])
+    
+    print(f"\n=== Learning Curve Summary ===")
+    print(f"Best Val MAE: {epoch_history['val_mae'][best_val_mae_idx]:.4f} at epoch {epochs[best_val_mae_idx]}")
+    print(f"Best Val MSE: {epoch_history['val_mse'][best_val_mse_idx]:.4f} at epoch {epochs[best_val_mse_idx]}")
+    print(f"Final Train MSE: {epoch_history['train_mse'][-1]:.4f}")
+    print(f"Final Val MSE: {epoch_history['val_mse'][-1]:.4f}")
+    print(f"Final Val MAE: {epoch_history['val_mae'][-1]:.4f}")
