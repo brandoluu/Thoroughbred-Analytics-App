@@ -99,9 +99,9 @@ def trainModel(dataset, num_epochs, path_name, learning_rate, batch_size):
 
     modelInstance = Model(dimension=64).to(device)
     #optimizer = optim.AdamW(modelInstance.parameters(), lr=learning_rate, weight_decay=0.01)
-    optimizer = optim.SGD(modelInstance.parameters(), lr=learning_rate, momentum=0.9, weight_decay=1e-4)
+    optimizer = optim.SGD(modelInstance.parameters(), lr=learning_rate, momentum=0.7, weight_decay=1e-4)
     #scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.25, patience=5)
-    scheduler = CosineAnnealingWarmRestarts(optimizer, T_0=num_epochs, T_mult=2, eta_min=1e-6)
+    scheduler = CosineAnnealingWarmRestarts(optimizer, T_0=10, T_mult=2, eta_min=1e-6)
 
     print(" ======= Successfully created model and optimizer ======= ")
 
