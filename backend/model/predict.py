@@ -38,9 +38,12 @@ def predict_samples(model_path, dataset_path, plot_results, num_samples):
     model.eval()
 
     # data preperation and subset creation
-    idToName = encode_names(dataset_path) 
-
     dataset = pd.read_csv(dataset_path)
+
+    # Map row indices to horse names (ensures correct mapping when selecting random rows)
+    idToName = dataset['name'].to_dict()
+
+    # Drop the name column for model input
     dataset = dataset.drop(['name'], axis=1)
     model_input = HorseDataset(dataset)
 
@@ -68,6 +71,7 @@ def predict_samples(model_path, dataset_path, plot_results, num_samples):
 
         # Use the original index for mapping
         horse_name = idToName[original_index]
+
         #print(f"Predicted rating for {horse_name} is {prediction.item()}")
 
 
