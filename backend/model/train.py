@@ -164,7 +164,7 @@ def trainModel(dataset, num_epochs, path_name, learning_rate, batch_size):
                 print(f"Early stopping triggered at epoch {epoch}")
                 break
 
-    modelInstance.load_state_dict(torch.load(f"{path_name}_best.pth"))
+    modelInstance.load_state_dict(torch.load(f"{path_name}.pth"))
 
     end_time = time.time()
     total_time = end_time - start_time

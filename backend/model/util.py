@@ -28,6 +28,7 @@ import joblib
     pd.Series
         Column with mapped numerical values (0-4)
 """
+
 def mapFormToHierarchy(column):
     formHierarchy = {
         'G1w': 4,      
@@ -97,8 +98,9 @@ def preprocess_csv(path_to_csv):
     df['form2'] = df['form2'].fillna('UNKNOWN')
 
     # Map to hierarchy
-    # df['form'] = df['form'].map(formHeirarchy).fillna(0).astype(int)
-    # df['damForm'] = df['form2'].map(formHeirarchy).fillna(0).astype(int)
+    # df['form'] = df['form'].map(formHierarchy).fillna(0).astype(int)
+    # df['damForm'] = df['form2'].map(formHierarchy).fillna(0).astype(int)
+    
     df['form'] = mapFormToHierarchy(df['form']).astype(int)
     df['damForm'] = mapFormToHierarchy(df['form2']).astype(int)
 
