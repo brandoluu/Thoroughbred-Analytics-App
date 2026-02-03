@@ -86,6 +86,12 @@ def trainModel(dataset, num_epochs, path_name, learning_rate, batch_size):
 
     df = df.drop(["name"], axis=1)
 
+    # ---- Using SMOTE on Form ----
+    # df = df.drop(columns=['name'])
+    # y = df['form']
+    # smote = SMOTE(random_state=42)
+    # df, yRes = smote.fit_resample(df, y)
+    
     df = HorseDataset(df) 
     print(" ======= Successfully loaded dataset ======= ")
 
@@ -155,7 +161,7 @@ def trainModel(dataset, num_epochs, path_name, learning_rate, batch_size):
         # Save best model using state_dict (more efficient than deepcopy)
         if validation['mae'] < best_model_loss:
             best_model_loss = validation['mae']
-            torch.save(modelInstance.state_dict(), f"{path_name}_best.pth")
+            torch.save(modelInstance.state_dict(), f"{path_name}.pth")
             print(f"Best model saved with Val MAE: {best_model_loss:.5f}\n")
             early_stopping_counter = 0
         else:

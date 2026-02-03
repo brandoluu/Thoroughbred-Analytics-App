@@ -12,7 +12,7 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 import random
 from torch.utils.data import DataLoader, Subset
-import joblib
+from imblearn.over_sampling import SMOTE
 
 """
     Maps horse form strings to numerical values based on hierarchy.
@@ -123,14 +123,21 @@ def preprocess_csv(path_to_csv):
     sexCols = hotEncoder.get_feature_names_out(['sex'])
     sexDf = pd.DataFrame(encodedSex, columns=sexCols, index=df.index)
     df = pd.concat([df.drop(columns=['sex']), sexDf], axis=1)
-
+    
+    # ---- Filling in missing values in Fee category ----
+    df['fee'] = df['fee'].fillna(df['fee'].median())
+    
     print(f"number of unique names: {df['name'].nunique()}")
     print(f"number of unique sires: {df['sire'].max()}")
     print(f"number of unique dams: {df['dam'].max()}")
     print(f"number of unique bmSires: {df['bmSire'].max()}")
 
-    # ---- Filling in missing values in Fee category ----
-    df['fee'] = df['fee'].fillna(df['fee'].median())
+    # ---- Using SMOTE on Form ----
+    # df = df.drop(columns=['name'])
+    # y = df['form']
+    # smote = SMOTE(random_state=42)
+    # df, yRes = smote.fit_resample(df, y)
+    
 
     return df, idToName  # Return formToId for inference
 
