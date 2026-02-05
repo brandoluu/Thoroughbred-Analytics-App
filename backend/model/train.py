@@ -14,6 +14,7 @@ from model.dataset import HorseDataset
 from torch.optim.lr_scheduler import ReduceLROnPlateau, CosineAnnealingWarmRestarts
 from model.util import plot_learning_curve
 import time
+from imblearn.over_sampling import SMOTE
 
 
 def trainOneEpoch(model, loader, optimizer, device, grad_clip=1.0, use_amp=False):
@@ -74,7 +75,7 @@ Input: dataset: Clean dataset as a .csv file
        path_name: the name of the finished model with weights
 Output: None (saves the best model as 'path_name')
 """
-def trainModel(dataset, num_epochs, path_name, learning_rate, batch_size):
+def trainModel(dataset, num_epochs, path_name, learning_rate, batch_size):  
 
     best_model_loss = float('inf')
     modelInstance = Model()
@@ -84,13 +85,40 @@ def trainModel(dataset, num_epochs, path_name, learning_rate, batch_size):
     # Laoding the dataset and drop the name column
     df = pd.read_csv(dataset) 
 
-    df = df.drop(["name"], axis=1)
 
-    # ---- Using SMOTE on Form ----
-    # df = df.drop(columns=['name'])
-    # y = df['form']
-    # smote = SMOTE(random_state=42)
-    # df, yRes = smote.fit_resample(df, y)
+    #---- Using SMOTE on rating ----
+    df = df.drop(columns=['name'])
+    
+    # Separate features (X) and target (y)
+    y = df['rating']
+    X = df.drop(columns=['rating'])
+
+    print("Class distribution before SMOTE:")
+    print(y.value_counts().sort_index())
+
+    # Remove classes with very few samples (e.g., fewer than 6)
+    min_samples = 6
+    class_counts = y.value_counts()
+    valid_classes = class_counts[class_counts >= min_samples].index
+
+    # Filter to only keep classes with enough samples
+    mask = y.isin(valid_classes)
+    X = X[mask]
+    y = y[mask]
+
+    print(f"\nRemoved {(~mask).sum()} samples from rare classes")
+    print("Class distribution after filtering:")
+    print(y.value_counts().sort_index())
+
+    # Now apply SMOTE
+    smote = SMOTE(random_state=42)
+    X_resampled, y_resampled = smote.fit_resample(X, y)
+    
+    # Recombine into a dataframe
+    df_resampled = pd.DataFrame(X_resampled, columns=X.columns)
+    df_resampled['rating'] = y_resampled
+
+    print(df.size)
     
     df = HorseDataset(df) 
     print(" ======= Successfully loaded dataset ======= ")
@@ -111,7 +139,6 @@ def trainModel(dataset, num_epochs, path_name, learning_rate, batch_size):
 
     print(" ======= Successfully created model and optimizer ======= ")
 
-    # Training parameters to be added to command line arguments after
 
     # training loop
     early_stopping_patience = 20

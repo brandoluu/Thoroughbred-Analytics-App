@@ -132,13 +132,6 @@ def preprocess_csv(path_to_csv):
     print(f"number of unique dams: {df['dam'].max()}")
     print(f"number of unique bmSires: {df['bmSire'].max()}")
 
-    # ---- Using SMOTE on Form ----
-    # df = df.drop(columns=['name'])
-    # y = df['form']
-    # smote = SMOTE(random_state=42)
-    # df, yRes = smote.fit_resample(df, y)
-    
-
     return df, idToName  # Return formToId for inference
 
 """
